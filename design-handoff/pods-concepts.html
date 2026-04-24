@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>●● — New Concepts (Bubble · Dial · Ripple · Star · Pulse · Crowd)</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; overflow: hidden; height: 100%; }
+  body { font-family: 'Space Grotesk', 'Noto Sans KR', -apple-system, system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Core tokens + design canvas -->
+<script type="text/babel" src="lib/tokens.jsx"></script>
+<script type="text/babel" src="lib/design-canvas.jsx"></script>
+
+<!-- Shared message bank — weighted random source of truth -->
+<script type="text/babel">
+window.__MSG_BANK = {
+  daily: [
+    { text: '퇴근하고 싶다ㅠㅠ 누가 나 좀 구해줘',    nickname: '퇴근하고싶은판다#1203' },
+    { text: '나도 ㅠㅠ 시계가 멈춘 것 같아',         nickname: '졸린곰#0042' },
+    { text: '오늘 저녁 뭐 먹지… 치킨 각?',          nickname: '배고픈햄스터#7788' },
+    { text: '치킨 찬성 🙋‍♀️',                      nickname: '화난여우#2111' },
+    { text: '비 와서 분위기 좋다',                   nickname: '축축한수달#0909' },
+    { text: '월요병 그 자체',                        nickname: '지친라쿤#5050' },
+    { text: '커피 벌써 3잔째',                       nickname: '카페인중독#7171' },
+    { text: '집에 가고 싶어요…',                     nickname: '피곤한사슴#5522' },
+    { text: '오늘만 버티자',                         nickname: '버티는고양이#3344' },
+    { text: '퇴근 15분 전',                          nickname: '초읽기펭귄#6161' },
+  ],
+  stock: [
+    { text: '오늘 장 뭐야 진짜',                     nickname: '불타는곰#3303' },
+    { text: '물렸다… 계속 물렸다',                    nickname: '초록손개미#7700' },
+    { text: '반도체 어떻게 생각해?',                  nickname: '차분한독수리#1155' },
+    { text: '테마주 다 끝났나 이거',                  nickname: '타이밍잘못#9999' },
+    { text: '금리 발표 기다리는 중',                  nickname: '차트보는늑대#4422' },
+    { text: '손절 타이밍 놓쳤다…',                   nickname: '물린개미#2020' },
+    { text: '오늘 상한가 뭐였어?',                   nickname: '정보느림보#1010' },
+  ],
+  job: [
+    { text: '자소서 10번째 고치는 중',               nickname: '지친올빼미#4747' },
+    { text: '면접 끝났는데 망한 것 같아요',           nickname: '떨리는두더지#0110' },
+    { text: '인적성 시험 실화냐',                     nickname: '머리터진햄스터#5555' },
+    { text: '어디까지 합격 발표 났음?',               nickname: '기다리는나무늘보#8282' },
+    { text: '오늘도 탈락 메일',                       nickname: '단련된사슴#3030' },
+    { text: '포트폴리오 뭐 넣지',                     nickname: '고민많은여우#6767' },
+  ],
+};
+</script>
+
+<!-- Concepts — load each as its own babel script so scopes don't collide -->
+<script type="text/babel" src="lib/concept-bubble.jsx"></script>
+<script type="text/babel" src="lib/concept-dial.jsx"></script>
+<script type="text/babel" src="lib/concept-ripple.jsx"></script>
+<script type="text/babel" src="lib/concept-star.jsx"></script>
+<script type="text/babel" src="lib/concept-pulse.jsx"></script>
+<script type="text/babel" src="lib/concept-crowd.jsx"></script>
+<script type="text/babel" src="lib/concept-bunker.jsx"></script>
+<script type="text/babel" src="lib/concept-signal.jsx"></script>
+<script type="text/babel" src="lib/concept-square.jsx"></script>
+<script type="text/babel" src="lib/concept-sauna.jsx"></script>
+<script type="text/babel" src="lib/concept-platform.jsx"></script>
+<script type="text/babel" src="lib/concept-cairn.jsx"></script>
+<script type="text/babel" src="lib/concept-pager.jsx"></script>
+
+<!-- App root -->
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+// Minimal iOS phone frame (no external dep)
+function Phone({ width = 390, height = 844, children }) {
+  return (
+    <div style={{
+      width: width + 20, height: height + 20,
+      padding: 10, borderRadius: 54,
+      background: 'linear-gradient(145deg, #1a1a22 0%, #0b0b10 100%)',
+      boxShadow: '0 24px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
+    }}>
+      <div style={{
+        width, height, borderRadius: 44, overflow: 'hidden',
+        position: 'relative', background: '#0a0a0f',
+      }}>
+        {children}
+        {/* Dynamic island */}
+        <div style={{
+          position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
+          width: 120, height: 34, borderRadius: 18, background: '#000', zIndex: 200,
+        }}/>
+        {/* Status bar */}
+        <div style={{
+          position: 'absolute', top: 16, left: 0, right: 0, zIndex: 200,
+          display: 'flex', justifyContent: 'space-between',
+          padding: '0 32px', color: '#fff', fontSize: 15, fontWeight: 600,
+          fontFamily: '"SF Pro Display", -apple-system, system-ui, sans-serif',
+          pointerEvents: 'none',
+        }}>
+          <span>9:41</span>
+          <span style={{display:'flex',alignItems:'center',gap:6}}>
+            <svg width="18" height="11" viewBox="0 0 18 11" fill="none">
+              <rect x="0" y="3" width="3" height="5" rx="0.6" fill="white"/>
+              <rect x="4.5" y="2" width="3" height="6" rx="0.6" fill="white"/>
+              <rect x="9" y="1" width="3" height="7" rx="0.6" fill="white"/>
+              <rect x="13.5" y="0" width="3" height="8" rx="0.6" fill="white"/>
+            </svg>
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="none">
+              <rect x="0.5" y="0.5" width="13" height="9" rx="2" stroke="white" strokeOpacity="0.4"/>
+              <rect x="2" y="2" width="10" height="6" rx="0.8" fill="white"/>
+              <rect x="14.5" y="3" width="1.5" height="3.5" rx="0.5" fill="white" fillOpacity="0.4"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Room switcher wrapper — controls the roomId tab inside each concept
+function ConceptFrame({ Component, initialRoom = 'daily', showKeyboard = false }) {
+  const [roomId, setRoomId] = React.useState(initialRoom);
+  return (
+    <div style={{position: 'relative'}}>
+      <Phone width={390} height={844}>
+        <Component roomId={roomId} keyboardUp={showKeyboard}/>
+      </Phone>
+      {/* Room selector chips below */}
+      <div style={{
+        position: 'absolute', top: -40, left: 0, right: 0,
+        display: 'flex', justifyContent: 'center', gap: 8,
+      }}>
+        {['daily','stock','job'].map(id => (
+          <button key={id} onClick={() => setRoomId(id)}
+            style={{
+              padding: '5px 12px', borderRadius: 999,
+              fontSize: 11, fontWeight: 600,
+              border: '1px solid ' + (roomId === id ? TOKENS.rooms[id].accent : 'rgba(0,0,0,0.15)'),
+              background: roomId === id ? TOKENS.rooms[id].accent : 'rgba(255,255,255,0.6)',
+              color: roomId === id ? '#000' : 'rgba(40,30,20,0.7)',
+              cursor: 'pointer', letterSpacing: 0.3,
+              fontFamily: '"Noto Sans KR", sans-serif',
+            }}>
+            {TOKENS.rooms[id].name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+      {/* ─── Intro ─────────────────────────── */}
+      <DCSection id="intro" title="●● · 새 컨셉 5종"
+        subtitle="V1 (이어폰) 보존 + 새 메타포 실험. 모든 시안 공통: 가중 랜덤 배치, 실시간 흐름, 자동 소멸. 각 카드 위 탭으로 방(일상/주식/취준) 전환.">
+        <div style={{
+          width: 720, padding: '22px 26px', borderRadius: 12,
+          background: 'rgba(201,100,66,0.08)', border: '1px solid rgba(201,100,66,0.2)',
+          color: 'rgba(40,30,20,0.85)', fontFamily: '-apple-system, system-ui, sans-serif',
+          fontSize: 13, lineHeight: 1.65,
+        }}>
+          <div style={{fontWeight: 700, marginBottom: 8, fontSize: 15, color: '#c96442'}}>작업 요약</div>
+          <div style={{marginBottom: 6}}>✓ <b>V3 Speaker 제거</b> — 단일 화자 컨셉은 이 실험 방향과 맞지 않아 삭제.</div>
+          <div style={{marginBottom: 6}}>✓ <b>V2 Crowd 리팩터</b> — 가중 랜덤 배치 (마지막 4개와 거리 확보 + 회전/스케일 분산).</div>
+          <div style={{marginBottom: 6}}>✓ <b>공통 메시지 뱅크</b> — 방마다 6~10개 한글 메시지 풀에서 가중 랜덤 추출.</div>
+          <div style={{marginBottom: 6}}>✓ <b>이어폰 시안 (V1)</b> — <code style={{background:'rgba(0,0,0,0.06)',padding:'1px 5px',borderRadius:3}}>pods-prototype.html</code> 보존.</div>
+          <div style={{marginTop: 10, color: 'rgba(40,30,20,0.6)', fontSize: 12}}>
+            각 시안은 "실시간성 — 지금 이 순간"이라는 정체성 축을 다르게 해석합니다.
+            아무 카드나 풀스크린으로 열어 움직임을 오래 관찰해보세요.
+          </div>
+        </div>
+      </DCSection>
+
+      {/* ─── C01 · Bubble ───────────────────── */}
+      <DCSection id="c01-bubble" title="C01 · Soap Bubble"
+        subtitle="메시지가 바닥에서 떠올라 랜덤 경로로 부유하다 터진다. 휘발성 = 터짐. 발화는 작은 방울을 내보내는 행위. 메시지 길이에 따라 방울 크기가 바뀌고, 방끼리 다른 바닥색 + 색수차 막으로 구분.">
+        <DCArtboard id="bubble-daily" label="일상 · 가장 활발한 방" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptBubble} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="bubble-stock" label="주식 · 노랑 아쿠아" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptBubble} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="bubble-kb" label="키보드 업 · 내 방울 합성" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptBubble} initialRoom="daily" showKeyboard={false}/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C02 · Dial ─────────────────────── */}
+      <DCSection id="c02-dial" title="C02 · Frequency Dial"
+        subtitle="라디오 주파수 튜닝 메타포. 방 = 주파수(88.3 / 104.7 / 97.1 MHz). 메시지는 좌→우로 흐르는 신호파로 표시되며 중앙 주파수 라인에 닿을 때만 풀 텍스트가 뜸. 노이즈 점 + 스캔라인 배경으로 '실시간 수신' 느낌 강조.">
+        <DCArtboard id="dial-daily" label="일상 · 88.3 MHz" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptDial} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="dial-stock" label="주식 · 104.7 MHz" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptDial} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="dial-job" label="취준 · 97.1 MHz" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptDial} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C03 · Ripple ───────────────────── */}
+      <DCSection id="c03-ripple" title="C03 · Ripple Pool"
+        subtitle="발화 = 물에 돌 던지기. 각 메시지는 랜덤 좌표에서 4겹 동심원 파문으로 퍼지고, 텍스트는 파문 중앙에 몇 초 떴다 사라짐. 겹치는 파문의 간섭이 '방의 분위기'를 시각화. 가장 조용한 시안.">
+        <DCArtboard id="ripple-daily" label="일상" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptRipple} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="ripple-stock" label="주식" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptRipple} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="ripple-job" label="취준 · 파랑" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptRipple} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C04 · Star ─────────────────────── */}
+      <DCSection id="c04-star" title="C04 · Constellation"
+        subtitle="메시지 = 하늘에 반짝 태어나는 별. 방 안의 최근 메시지들이 얇은 선으로 이어지며 형태 없는 별자리 생성. 별은 태어날 때 플래시 + 십자 스파크, 시간이 지나며 점점 어두워짐. 가장 시적인 시안.">
+        <DCArtboard id="star-daily" label="일상 · 초록 성단" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptStar} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="star-stock" label="주식 · 황금 성단" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptStar} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="star-job" label="취준 · 청색 성단" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptStar} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C05 · Pulse (Bonus) ────────────── */}
+      <DCSection id="c05-pulse" title="C05 · Pulse (Bonus · 실시간성 최강)"
+        subtitle="방 자체가 하나의 생명체. 중앙 ECG 라인이 계속 흐르고 메시지 도착마다 진짜 심박 스파이크가 트레이스에 주입됨 + 상하로 말풍선이 튀어나옴. BPM 카운터는 방의 활성도. 병원 모니터 미학 + 긴장감.">
+        <DCArtboard id="pulse-daily" label="일상 · 실시간 BPM" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPulse} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="pulse-stock" label="주식 · 심박은 노랑" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPulse} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="pulse-job" label="취준" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPulse} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C06 · Bunker ───────────────────── */}
+      <DCSection id="c06-bunker" title="C06 · Bunker (벙커)"
+        subtitle="외부 소동 피해 모인 지하 은신처. CRT 스캔라인 + 픽셀 폰트 + 무전 로그 스타일. 매일 자정 PURGE 카운트다운 (상단 고정). 방: 라운지(일상·녹색) / 자습실(취준·앰버) / 워룸(주식·빨강). 가장 긴장감 높은 톤.">
+        <DCArtboard id="bunker-daily" label="라운지 · 녹색 벙커" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptBunker} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="bunker-stock" label="워룸 · 시장 대피소" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptBunker} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="bunker-job" label="자습실 · 앰버" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptBunker} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C07 · Signal 24 ────────────────── */}
+      <DCSection id="c07-signal" title="C07 · Signal 24 (24시간 후 폭파)"
+        subtitle="녹색 인광 CRT 터미널. 주파수 F-번호로 방 구분. 메시지는 수신 후 60초 카운트로 자동 소멸 (상단에 T-초 + 하단 붕괴 바). 아날로그 사인파 오실로스코프가 항상 돌아감. '비밀 첩보' 톤.">
+        <DCArtboard id="signal-daily" label="FREE-TALK · F-7824" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSignal} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="signal-stock" label="INSIDERS · F-9301" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSignal} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="signal-job" label="INTEL · F-4456" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSignal} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C08 · Square ───────────────────── */}
+      <DCSection id="c08-square" title="C08 · Square (광장)"
+        subtitle="완전 반대 방향 — 라이트 모드, 흰빛 미니멀. 대화 속도로 '온도계' 상승, 85°C 넘으면 배경이 사이렌처럼 점멸 + '핫플레이스' 뱃지. 정원 3000명 채워지면 오래된 메시지부터 휩쓸려 나감. 가장 깨끗한 시안.">
+        <DCArtboard id="square-daily" label="아무나 광장 · 온도계 42°" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSquare} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="square-stock" label="차트 광장 · 과열 위험" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSquare} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="square-job" label="합격 광장" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSquare} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C09 · Sauna ────────────────────── */}
+      <DCSection id="c09-sauna" title="C09 · Sauna (사우나) ★"
+        subtitle="한국적 + 해학적 톤. 냉탕(일상) / 열탕(취준) / 불가마(주식) — 방마다 완전히 다른 배경색과 증기색. 메시지는 증기처럼 솟아오르며 위로 갈수록 흐려지다 증발. 30분 체류 타이머 + 수건 양머리 닉네임 + 비상벨. 다른 시안들보다 '상황별 톤 차이'가 가장 큼.">
+        <DCArtboard id="sauna-daily" label="❄ 냉탕 · 시원한 물빛" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSauna} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="sauna-stock" label="🔥 불가마 · 지글지글" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSauna} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="sauna-job" label="♨ 열탕 · 정신 번쩍" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptSauna} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C10 · Platform ─────────────────── */}
+      <DCSection id="c10-platform" title="C10 · Platform (지하철 플랫폼) ★"
+        subtitle="선 기반 구조 — 방 = 노선, 메시지 = 전광판 공지. 오렌지 도트매트릭스 LED 사인 + 다음 열차 ETA. 야구·월드컵·공항 전광판 확장이 현실적 (구조가 똑같음). 업무적/정보적 느낌 강함, 도시적.">
+        <DCArtboard id="platform-daily" label="2호선 · 일상행" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPlatform} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="platform-stock" label="9호선 · 주식행 (급행)" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPlatform} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="platform-job" label="분당선 · 취준행" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPlatform} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C11 · Cairn ───────────────────── */}
+      <DCSection id="c11-cairn" title="C11 · Cairn (돌탑) ★"
+        subtitle="한국 정서 심층 — 메시지 = 돌멩이. 깁이 길수록 큰 돌, 오래된 돌은 아래에 깔리며 이끼 띙슴래짐. 바람에 흔들리다가 많아지면 '와르르' 무너짐. 명상적·정적인 톤 — 담타 완전 반대 계열. 야구장 '응원 돌탑'으로 확장 가능.">
+        <DCArtboard id="cairn-daily" label="마음돌탑 · 상아색 석재" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptCairn} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="cairn-stock" label="시세돌탑 · 황토색" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptCairn} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="cairn-job" label="소원돌탑 · 이끼색" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptCairn} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── C12 · Pager ──────────────────── */}
+      <DCSection id="c12-pager" title="C12 · Pager (샐샐 · 호출기)"
+        subtitle="90년대 모토롤라 호출기 오마주. 메시지 = 숫자 코드 + 한 줄 해석. 8282(빨리빨리) 1004(천사) 0486(사랑해) 같은 밀레니얼 디지털 문화 오마주. 래트로하면서도 Gen-Z에게 신선함. LCD 화면과 스피커 그릴까지 실물감.">
+        <DCArtboard id="pager-daily" label="*012 · DAILY.CH · 초록" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPager} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="pager-stock" label="*827 · STOCK.CH · 애버" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPager} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="pager-job" label="*119 · JOB.CH · 네이비" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptPager} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── V2 · Crowd (refreshed) ─────────── */}
+      <DCSection id="v2-crowd" title="V2 · Crowd (가중 랜덤 리팩터)"
+        subtitle="기존 V2를 가중 랜덤으로 재작업 — 마지막 4개 카드와 최소 거리 확보, 카드마다 미세한 회전/스케일 분산. 카드는 5~8초 살다가 페이드 소멸, 최근 10개만 유지.">
+        <DCArtboard id="crowd-daily" label="일상" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptCrowd} initialRoom="daily"/>
+        </DCArtboard>
+        <DCArtboard id="crowd-stock" label="주식" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptCrowd} initialRoom="stock"/>
+        </DCArtboard>
+        <DCArtboard id="crowd-job" label="취준" width={410} height={900}>
+          <ConceptFrame Component={window.ConceptCrowd} initialRoom="job"/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── Next steps ─────────────────────── */}
+      <DCSection id="next" title="다음 단계"
+        subtitle="가장 마음에 드는 메타포를 고르시면 그 방향으로 깊게 파고 들겠습니다.">
+        <div style={{
+          width: 720, padding: '22px 26px', borderRadius: 12,
+          background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.08)',
+          color: 'rgba(40,30,20,0.85)', fontFamily: '-apple-system, system-ui, sans-serif',
+          fontSize: 13, lineHeight: 1.75,
+        }}>
+          <div style={{fontWeight: 700, marginBottom: 10, fontSize: 15}}>제 개인적 추천</div>
+          <div style={{marginBottom: 8}}>🫧 <b>Bubble</b> — 휘발성 정체성과 가장 잘 맞음. 메시지가 "떠 있다가 터진다"는 게 비유적으로 완벽. 인터랙션도 자연스러움 (터치 = 터뜨리기).</div>
+          <div style={{marginBottom: 8}}>💫 <b>Star</b> — 정서적으로 가장 깊음. "내 말이 별이 되어 잠시 빛난다"는 감정 — 외롭고 솔직한 앱의 톤에 맞음.</div>
+          <div style={{marginBottom: 8}}>❤️ <b>Pulse</b> — '실시간성'을 가장 강하게 증명. 대화가 이 방을 살게 만들고 있다는 증거. 하지만 병원 느낌이 강해 톤이 갈릴 수 있음.</div>
+          <div style={{marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: 12, color: 'rgba(40,30,20,0.6)'}}>
+            다음에 할 수 있는 것: (1) 선택 방향의 인터랙션 깊게 — 탭/스와이프/입력 애니, (2) 온보딩 + 이름 생성, (3) 방 전환 모션, (4) 내가 보낸 메시지 특별 처리, (5) 침묵의 방 / 빈 상태.
+          </div>
+        </div>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"/>
+<style>html,body{margin:0;padding:0;background:#222;display:flex;align-items:center;justify-content:center;min-height:100vh;} body{font-family:'Noto Sans KR',sans-serif;}</style></head>
+<body><div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../lib/concept-sauna-deep.jsx"></script>
+<script type="text/babel">
+function IOSKeyboard() {
+  const row1 = ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'];
+  const row2 = ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'];
+  const row3 = ['ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ'];
+  return (
+    <div style={{position:'absolute',bottom:0,left:0,right:0,height:291,
+      background:'linear-gradient(180deg,#2a2a33,#1d1d25)',zIndex:190,padding:'6px 4px 30px'}}>
+      {[row1,row2,row3].map((row,ri)=>(
+        <div key={ri} style={{display:'flex',gap:6,justifyContent:'center',padding:ri===1?'0 20px':'0',marginTop:ri===0?8:10}}>
+          {ri===2 && <div style={{width:42,height:42,borderRadius:5,background:'#3a3a45',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}>⇧</div>}
+          {row.map(k=><div key={k} style={{flex:1,height:42,borderRadius:5,background:'#545460',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:16}}>{k}</div>)}
+          {ri===2 && <div style={{width:42,height:42,borderRadius:5,background:'#3a3a45',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}>⌫</div>}
+        </div>
+      ))}
+      <div style={{display:'flex',gap:6,marginTop:10,padding:'0 4px'}}>
+        <div style={{width:80,height:42,borderRadius:5,background:'#3a3a45',color:'#fff',fontSize:12,display:'flex',alignItems:'center',justifyContent:'center'}}>123</div>
+        <div style={{width:42,height:42,borderRadius:5,background:'#3a3a45',color:'#fff',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center'}}>🌐</div>
+        <div style={{flex:1,height:42,borderRadius:5,background:'#545460'}}/>
+        <div style={{width:80,height:42,borderRadius:5,background:'#c96442',color:'#fff',fontSize:13,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:600}}>전송</div>
+      </div>
+    </div>
+  );
+}
+function App(){
+  return (
+    <div style={{width:390,height:844,borderRadius:44,overflow:'hidden',position:'relative',background:'#0a0a0f'}}>
+      <window.ConceptSaunaDeep roomId="stock" crowd="medium" keyboardUp={true}/>
+      <IOSKeyboard/>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>

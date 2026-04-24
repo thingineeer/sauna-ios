@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>●● v2 — Deep Dive: Sauna · Bubble · Star</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; overflow: hidden; height: 100%; }
+  body { font-family: 'Space Grotesk', 'Noto Sans KR', -apple-system, system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .kor  { font-family: 'Noto Sans KR', sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="lib/tokens.jsx"></script>
+<script type="text/babel" src="lib/design-canvas.jsx"></script>
+
+<script type="text/babel">
+window.__MSG_BANK = {
+  daily: [
+    { text: '퇴근하고 싶다ㅠㅠ 누가 나 좀 구해줘', nickname: '퇴근하고싶은판다#1203' },
+    { text: '나도 ㅠㅠ 시계가 멈춘 것 같아',      nickname: '졸린곰#0042' },
+    { text: '오늘 저녁 뭐 먹지… 치킨 각?',       nickname: '배고픈햄스터#7788' },
+    { text: '치킨 찬성 🙋‍♀️',                   nickname: '화난여우#2111' },
+    { text: '비 와서 분위기 좋다',                nickname: '축축한수달#0909' },
+    { text: '월요병 그 자체',                     nickname: '지친라쿤#5050' },
+    { text: '커피 벌써 3잔째',                    nickname: '카페인중독#7171' },
+    { text: '집에 가고 싶어요…',                  nickname: '피곤한사슴#5522' },
+    { text: '오늘만 버티자',                      nickname: '버티는고양이#3344' },
+    { text: '퇴근 15분 전',                       nickname: '초읽기펭귄#6161' },
+  ],
+  stock: [
+    { text: '오늘 장 뭐야 진짜',                  nickname: '불타는곰#3303' },
+    { text: '물렸다… 계속 물렸다',                 nickname: '초록손개미#7700' },
+    { text: '반도체 어떻게 생각해?',               nickname: '차분한독수리#1155' },
+    { text: '테마주 다 끝났나 이거',               nickname: '타이밍잘못#9999' },
+    { text: '금리 발표 기다리는 중',               nickname: '차트보는늑대#4422' },
+    { text: '손절 타이밍 놓쳤다…',                nickname: '물린개미#2020' },
+    { text: '오늘 상한가 뭐였어?',                nickname: '정보느림보#1010' },
+  ],
+  job: [
+    { text: '자소서 10번째 고치는 중',            nickname: '지친올빼미#4747' },
+    { text: '면접 끝났는데 망한 것 같아요',        nickname: '떨리는두더지#0110' },
+    { text: '인적성 시험 실화냐',                  nickname: '머리터진햄스터#5555' },
+    { text: '어디까지 합격 발표 났음?',            nickname: '기다리는나무늘보#8282' },
+    { text: '오늘도 탈락 메일',                    nickname: '단련된사슴#3030' },
+    { text: '포트폴리오 뭐 넣지',                  nickname: '고민많은여우#6767' },
+  ],
+};
+</script>
+
+<script type="text/babel" src="lib/concept-sauna-deep.jsx"></script>
+<script type="text/babel" src="lib/concept-bubble-deep.jsx"></script>
+<script type="text/babel" src="lib/concept-star-deep.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+function Phone({ width = 390, height = 844, children, keyboardUp = false }) {
+  return (
+    <div style={{
+      width: width + 20, height: height + 20, padding: 10, borderRadius: 54,
+      background: 'linear-gradient(145deg, #1a1a22 0%, #0b0b10 100%)',
+      boxShadow: '0 24px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
+    }}>
+      <div style={{
+        width, height, borderRadius: 44, overflow: 'hidden',
+        position: 'relative', background: '#0a0a0f',
+      }}>
+        {children}
+        {keyboardUp && <IOSKeyboard/>}
+        <div style={{
+          position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
+          width: 120, height: 34, borderRadius: 18, background: '#000', zIndex: 200,
+        }}/>
+        <div style={{
+          position: 'absolute', top: 16, left: 0, right: 0, zIndex: 200,
+          display: 'flex', justifyContent: 'space-between',
+          padding: '0 32px', color: '#fff', fontSize: 15, fontWeight: 600,
+          fontFamily: '"SF Pro Display", -apple-system, system-ui, sans-serif',
+          pointerEvents: 'none',
+        }}>
+          <span>9:41</span>
+          <span style={{display:'flex',alignItems:'center',gap:6}}>
+            <svg width="18" height="11" viewBox="0 0 18 11" fill="none">
+              <rect x="0" y="3" width="3" height="5" rx="0.6" fill="white"/>
+              <rect x="4.5" y="2" width="3" height="6" rx="0.6" fill="white"/>
+              <rect x="9" y="1" width="3" height="7" rx="0.6" fill="white"/>
+              <rect x="13.5" y="0" width="3" height="8" rx="0.6" fill="white"/>
+            </svg>
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="none">
+              <rect x="0.5" y="0.5" width="13" height="9" rx="2" stroke="white" strokeOpacity="0.4"/>
+              <rect x="2" y="2" width="10" height="6" rx="0.8" fill="white"/>
+              <rect x="14.5" y="3" width="1.5" height="3.5" rx="0.5" fill="white" fillOpacity="0.4"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function IOSKeyboard() {
+  const row1 = ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'];
+  const row2 = ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'];
+  const row3 = ['ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ'];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, height: 291,
+      background: 'linear-gradient(180deg, #2a2a33 0%, #1d1d25 100%)',
+      zIndex: 190,
+      padding: '6px 4px 30px',
+      fontFamily: "'Noto Sans KR', sans-serif",
+    }}>
+      {[row1, row2, row3].map((row, ri) => (
+        <div key={ri} style={{
+          display: 'flex', gap: 6, justifyContent: 'center',
+          padding: ri === 1 ? '0 20px' : '0',
+          marginTop: ri === 0 ? 8 : 10,
+        }}>
+          {ri === 2 && (
+            <div style={{
+              width: 42, height: 42, borderRadius: 5,
+              background: '#3a3a45',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', fontSize: 14,
+            }}>⇧</div>
+          )}
+          {row.map(k => (
+            <div key={k} style={{
+              flex: 1, height: 42, borderRadius: 5,
+              background: '#545460',
+              boxShadow: '0 1px 0 rgba(0,0,0,0.5)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', fontSize: 16, fontWeight: 400,
+            }}>{k}</div>
+          ))}
+          {ri === 2 && (
+            <div style={{
+              width: 42, height: 42, borderRadius: 5,
+              background: '#3a3a45',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', fontSize: 14,
+            }}>⌫</div>
+          )}
+        </div>
+      ))}
+      <div style={{display: 'flex', gap: 6, marginTop: 10, padding: '0 4px'}}>
+        <div style={{width: 80, height: 42, borderRadius: 5,
+          background: '#3a3a45', color: '#fff', fontSize: 12,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'}}>123</div>
+        <div style={{width: 42, height: 42, borderRadius: 5,
+          background: '#3a3a45', color: '#fff', fontSize: 16,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'}}>🌐</div>
+        <div style={{flex: 1, height: 42, borderRadius: 5,
+          background: '#545460'}}/>
+        <div style={{width: 80, height: 42, borderRadius: 5,
+          background: '#c96442', color: '#fff', fontSize: 13,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 600}}>전송</div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+      {/* ─── Intro ─────────────────────── */}
+      <DCSection id="intro" title="●● v2 — 3개 컨셉 고도화"
+        subtitle="Sauna · Bubble · Star. 각 컨셉마다 (a) 대표 3방, (b) 엣지 시나리오 — 온보딩, 작성 중, 빈 방, 특수 이벤트, 내 메시지 하이라이트. 모두 풀스크린으로 열어 움직임을 관찰해보세요.">
+        <div style={{
+          width: 720, padding: '22px 26px', borderRadius: 12,
+          background: 'rgba(201,100,66,0.08)', border: '1px solid rgba(201,100,66,0.2)',
+          color: 'rgba(40,30,20,0.85)', fontFamily: '-apple-system, system-ui, sans-serif',
+          fontSize: 13, lineHeight: 1.65,
+        }}>
+          <div style={{fontWeight: 700, marginBottom: 10, fontSize: 15, color: '#c96442'}}>고도화 포인트</div>
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 18, marginTop: 12}}>
+            <div>
+              <div style={{fontWeight: 700, fontSize: 13, marginBottom: 6}}>🧖 Sauna</div>
+              <div style={{fontSize: 12, lineHeight: 1.55, color: 'rgba(40,30,20,0.7)'}}>
+                · 원목 사우나실 · 다운라이트<br/>
+                · 스토브 + 달궈진 돌 + 히터 열기<br/>
+                · 오늘 / 퇴근 / 고민방 (힐링 톤)<br/>
+                · 내 증기 = 골드 · 입탕 온보딩
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight: 700, fontSize: 13, marginBottom: 6}}>🫧 Bubble</div>
+              <div style={{fontSize: 12, lineHeight: 1.55, color: 'rgba(40,30,20,0.7)'}}>
+                · 탭해서 터뜨리기 (파편 burst)<br/>
+                · 내 방울 = 골드 하이라이트<br/>
+                · "내 방울" 카운터<br/>
+                · 작성 중 미리보기 + 빈 방
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight: 700, fontSize: 13, marginBottom: 6}}>★ Star</div>
+              <div style={{fontSize: 12, lineHeight: 1.55, color: 'rgba(40,30,20,0.7)'}}>
+                · 최근 5개 별 연결선 (진짜 별자리)<br/>
+                · 내 별 = 골드 + 십자 스파크<br/>
+                · 별똥별 랜덤 등장<br/>
+                · PEAK 순간 (성단 폭발)
+              </div>
+            </div>
+          </div>
+        </div>
+      </DCSection>
+
+      {/* ─── Sauna Deep ─────────────────── */}
+      <DCSection id="sauna-deep" title="🧖 Sauna — 3방 × 인원수 밀도 매트릭스"
+        subtitle="방 3개 고정: 일상 · 취준 · 주식. 같은 원목 사우나 테마, 방마다 다른 메시지 풀. 칩 1탭으로 전환 (월드컵·올림픽 확장 자리 미리 예약). 오른쪽으로 갈수록 인원이 늘어남 — 1~2명(적막) / 10명(편안) / 100+명(꽉 찬 증기).">
+
+        {/* 일상 행 */}
+        <DCArtboard id="sauna-daily-lonely" label="🌿 일상 · 1~2명 (적막)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="daily" crowd="lonely"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="sauna-daily-medium" label="🌿 일상 · 10명급 (기본)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="daily" crowd="medium"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="sauna-daily-packed" label="🌿 일상 · 100+명 (꽉 참)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="daily" crowd="packed"/></Phone>
+        </DCArtboard>
+
+        {/* 취준 행 */}
+        <DCArtboard id="sauna-job-lonely" label="🪵 취준 · 1~2명 (새벽)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="job" crowd="lonely"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="sauna-job-medium" label="🪵 취준 · 10명급 (평소)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="job" crowd="medium"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="sauna-job-packed" label="🪵 취준 · 100+명 (발표일 피크)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="job" crowd="packed"/></Phone>
+        </DCArtboard>
+
+        {/* 주식 행 */}
+        <DCArtboard id="sauna-stock-lonely" label="🔥 주식 · 1~2명 (장마감 후)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="stock" crowd="lonely"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="sauna-stock-medium" label="🔥 주식 · 10명급 (장중 평온)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="stock" crowd="medium"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="sauna-stock-packed" label="🔥 주식 · 100+명 (VI·폭락 피크)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="stock" crowd="packed"/></Phone>
+        </DCArtboard>
+
+        {/* 키보드 ON / 온보딩 */}
+        <DCArtboard id="sauna-d-keyboard" label="⌨ 키보드 ON · 레이아웃 고정" width={410} height={900}>
+          <Phone keyboardUp={true}>
+            <window.ConceptSaunaDeep roomId="stock" crowd="medium" keyboardUp={true}/>
+          </Phone>
+        </DCArtboard>
+        <DCArtboard id="sauna-d-onboard" label="입탕 온보딩 (첫 진입)" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="daily" crowd="medium" showOnboard={true}/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── Bubble Deep ─────────────────── */}
+      <DCSection id="bubble-deep" title="🫧 Bubble — Deep Dive"
+        subtitle="기본 3방 + 작성 미리보기 + 빈 방. 실제로 방울을 탭하면 터짐 (파편 8방향 + 링 확장). 내 방울은 항상 중앙 아래에서 출발.">
+        <DCArtboard id="bubble-d-daily" label="일상 · 기본 + 내 방울 ★" width={410} height={900}>
+          <Phone><window.ConceptBubbleDeep roomId="daily"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="bubble-d-stock" label="주식 · 황금빛 방울" width={410} height={900}>
+          <Phone><window.ConceptBubbleDeep roomId="stock"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="bubble-d-job" label="취준 · 민트 방울" width={410} height={900}>
+          <Phone><window.ConceptBubbleDeep roomId="job"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="bubble-d-composer" label="✍ 작성 중 미리보기" width={410} height={900}>
+          <Phone><window.ConceptBubbleDeep roomId="daily" showComposer={true}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="bubble-d-empty" label="빈 방 — '첫 방울을 띄워보세요'" width={410} height={900}>
+          <Phone><window.ConceptBubbleDeep roomId="job" emptyState={true}/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── Star Deep ──────────────────── */}
+      <DCSection id="star-deep" title="★ Star — Deep Dive"
+        subtitle="최근 5개 별을 가는 선으로 잇습니다. 내 별은 골드 + 큰 십자 스파크로 즉시 인지. 별똥별은 ~10초마다 랜덤 등장, PEAK는 동시에 많은 별이 뜨는 순간.">
+        <DCArtboard id="star-d-daily" label="밤하늘 · 기본 (연결선 + 별똥별)" width={410} height={900}>
+          <Phone><window.ConceptStarDeep roomId="daily"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="star-d-stock" label="황금성단 · 밀도 ↑" width={410} height={900}>
+          <Phone><window.ConceptStarDeep roomId="stock"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="star-d-job" label="청하늘 · 밀도 ↓" width={410} height={900}>
+          <Phone><window.ConceptStarDeep roomId="job"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="star-d-peak" label="✨ PEAK — 성단 폭발 순간" width={410} height={900}>
+          <Phone><window.ConceptStarDeep roomId="stock" showPeak={true}/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── Compare ────────────────────── */}
+      <DCSection id="compare" title="3개 비교 · 같은 상황"
+        subtitle="세 메타포의 톤 차이가 가장 잘 드러나는 컷.">
+        <DCArtboard id="cmp-sauna" label="🧖 Sauna — 따뜻함·힐링" width={410} height={900}>
+          <Phone><window.ConceptSaunaDeep roomId="daily" crowd="medium"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="cmp-bubble" label="🫧 Bubble — 가벼움·휘발" width={410} height={900}>
+          <Phone><window.ConceptBubbleDeep roomId="daily"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="cmp-star" label="★ Star — 시적·정적" width={410} height={900}>
+          <Phone><window.ConceptStarDeep roomId="daily"/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── Next ────────────────────────── */}
+      <DCSection id="next" title="다음 단계"
+        subtitle="이 중 하나로 좁혀주시면 풀 프로토타입 (홈 → 입장 → 대화 → 설정)으로 갑니다.">
+        <div style={{
+          width: 720, padding: '22px 26px', borderRadius: 12,
+          background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.08)',
+          color: 'rgba(40,30,20,0.85)', fontFamily: '-apple-system, system-ui, sans-serif',
+          fontSize: 13, lineHeight: 1.75,
+        }}>
+          <div style={{fontWeight: 700, marginBottom: 10, fontSize: 15}}>개인적 추천 (v2 반영)</div>
+          <div style={{marginBottom: 8}}>🧖 <b>Sauna</b> — 원목 사우나실 · 따뜻한 열기 · 힐링. 방이 달라도 '땀 흘리며 녹아내리는' 정체성을 공유. 한국적 공간감 강함.</div>
+          <div style={{marginBottom: 8}}>🫧 <b>Bubble</b> — 인터랙션이 가장 재밌음 (터뜨리기). 가장 깨끗·범용. 감정 깊이는 얕음.</div>
+          <div style={{marginBottom: 8}}>★ <b>Star</b> — 정서가 가장 깊고 쓸쓸함. 연결선이 "지금 이 방에 누가 있다"는 존재감을 시각화해서 외로운 시간대에 특히 맞음.</div>
+          <div style={{marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: 12, color: 'rgba(40,30,20,0.6)'}}>
+            선택하시면 할 것: (1) 홈 / 방 목록 화면, (2) 알림·푸시 컨셉, (3) 프로필·설정, (4) 내가 쓴 메시지 히스토리 (휘발성과 공존하는 방식), (5) 방 생성 / 분기 규칙.
+          </div>
+        </div>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
