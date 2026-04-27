@@ -13,9 +13,14 @@
 $ swift test --package-path ios/SaunaPackage
 Executed 65 tests, with 0 failures (0 unexpected) in 0.019 (0.025) seconds
 
-$ swiftlint lint --strict ios/SaunaPackage/Sources
-Done linting! Found 0 violations, 0 serious in 66 files.
+$ swift test --package-path server
+Executed 10 tests, with 0 failures (0 unexpected) in 0.222 (0.224) seconds
+
+$ swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources server/Sources
+Done linting! Found 0 violations, 0 serious in 162 files.
 ```
+
+**전체: 75 tests pass / 0 failures / 0 lint violations across 162 files.**
 
 ## iOS 모듈 (SPM 14개)
 
@@ -77,10 +82,25 @@ Done linting! Found 0 violations, 0 serious in 66 files.
 | Module smoke (5×) | 5 | 모듈 import + 식별자 회귀 |
 | **합계** | **65** | |
 
+## 서버 (Vapor)
+
+- ✅ Package.swift + Sources/SaunaServer/ + Tests/SaunaServerTests/
+- ✅ `/health` 200 OK
+- ✅ `WebSocket /ws/rooms/:roomId` (daily/stock/job 만 허용)
+- ✅ `PubSubBus` 프로토콜 + `InMemoryPubSubBus` (test) + `RedisPubSubBus` (prod)
+- ✅ `PasskeyController` 4개 스텁 (register/begin·finish, login/begin·finish)
+- ✅ `RateLimiter` 미들웨어 (per-user fixed window)
+- ✅ `Dockerfile` multi-stage Swift slim
+- ✅ `server/README.md` 로컬 실행 + env + Docker 가이드
+- 10 tests pass (Health 1, InMemoryPubSub 4, RoomController 5)
+- decisions: 알 수 없는 roomId 404, RediStack/AsyncKit `@unchecked Sendable`,
+  Postgres 풀은 phase 3, Bus fanout `Task.detached`, WS userId 임시 query
+
 ## v2 (Phase 2) 작업 — 추후 wire up
 
-- Vapor 서버 머지 (`feature/server-scaffold` worktree → `1.0.0`)
+- ✅ ~~Vapor 서버 머지~~ (완료)
 - `RootView` `AppContainer.live()` 가 `RemoteRoomRepository` + `KeychainNicknameStore` 를 주입하도록 교체
 - Apple `ASAuthorizationController` 를 통한 진짜 Passkey 등록·인증
 - Xcode 앱 타겟 (`ios/Sauna.xcodeproj`) 생성 → SPM 의존성 + Info.plist + Capabilities (Associated Domains for Passkey, Push)
+- Postgres 풀 + WebAuthn library 통합
 - TestFlight closed beta + Sentry
