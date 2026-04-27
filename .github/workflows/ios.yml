@@ -15,6 +15,9 @@ on:
       - "design-handoff/**"
       - "README.md"
       - "**/*.md"
+    # v* 태그 push 시에는 TestFlight 업로드 잡까지 간다.
+    tags:
+      - "v*"
 
 # Cancel in-flight runs on the same ref (PR or branch) when a new commit lands.
 concurrency:
@@ -130,4 +133,62 @@ jobs:
           swiftlint version
 
       - name: Run SwiftLint (warnings as errors)
-        run: swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources
+        run: swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources server/Sources
+
+  # ────────────────────────────────────────────────────────────────────────
+  # TestFlight upload — only on `v*` tag push, after build-test + lint green.
+  # ────────────────────────────────────────────────────────────────────────
+  testflight:
+    name: TestFlight (Fastlane)
+    needs: [build-test, lint]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-14
+    timeout-minutes: 60
+    env:
+      FASTLANE_TEAM_ID: ${{ secrets.FASTLANE_TEAM_ID }}
+      FASTLANE_ITC_TEAM_ID: ${{ secrets.FASTLANE_ITC_TEAM_ID }}
+      APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+      APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      FASTLANE_CHANGELOG: ${{ github.event.head_commit.message }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+
+      - name: Set up Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Sauna.xcodeproj
+        working-directory: ios
+        run: xcodegen generate --spec project.yml
+
+      - name: Resolve SPM packages for app target
+        working-directory: ios
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project Sauna.xcodeproj \
+            -scheme Sauna
+
+      - name: Fastlane beta
+        working-directory: ios
+        run: bundle exec fastlane beta
+
+      - name: Upload .ipa artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauna-ipa-${{ github.run_id }}
+          path: ios/build/*.ipa
+          if-no-files-found: warn
+          retention-days: 14
