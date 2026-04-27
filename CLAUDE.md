@@ -123,6 +123,62 @@ sauna-ios/
 - push는 명시적 요청 시에만
 - 시키지 않은 작업 하지 말 것
 
+## 브랜치 / 머지 워크플로우 (확정)
+
+**계층:**
+```
+release           ← Play Store / App Store 출시본 (production)
+   ▲
+   │ merge (배포 완료 후)
+   │
+  dev             ← 통합 테스트 (TestFlight / Internal QA)
+   ▲
+   │ merge (1.0.0 작업 종료 시)
+   │
+  1.0.0           ← 현재 버전 통합 브랜치
+   ▲ ▲ ▲
+   │ │ │ merge (각 worktree 작업 종료 시)
+   │ │ │
+  feature/foundation
+  feature/feature-room
+  feature/server-scaffold
+  ... (worktree 단위 브랜치들)
+```
+
+**규칙:**
+1. `1.0.0` 브랜치에서 **단위별로 worktree 브랜치**를 판다 (예: `feature/feature-room`, `feature/ci-actions`).
+2. 각 worktree 브랜치는 **N개의 의미 있는 atomic 커밋**을 포함한다. 한 커밋 = 한 의도.
+3. worktree 작업 종료 시 `1.0.0` 으로 **regular merge** (= merge commit 남김). **`squash` 머지 절대 금지.**
+4. `1.0.0` 의 변화가 안정되면 `dev` 로 merge → 통합 테스트 / TestFlight.
+5. App Store / Play Store 출시 완료 시 `dev` → `release` merge.
+6. `main` 은 트렁크. 새 버전 시작 시 `main` 에서 다음 버전 브랜치(`1.1.0` 등)를 다시 판다.
+
+**병렬 작업 (Worktree):**
+```bash
+# 1.0.0 에서 새 단위 작업 시작
+git worktree add ../sauna-ios.feature-room -b feature/feature-room 1.0.0
+
+# 작업 → atomic 커밋 N개
+
+# 1.0.0 으로 머지 (squash 금지)
+git checkout 1.0.0
+git merge --no-ff feature/feature-room
+
+# worktree 정리
+git worktree remove ../sauna-ios.feature-room
+git branch -d feature/feature-room
+```
+
+**에이전트 스폰 (자동 worktree):**
+```
+Agent({
+  isolation: "worktree",
+  description: "...",
+  prompt: "...",
+})
+```
+→ 에이전트가 worktree 안에서 작업하고 브랜치명·경로를 리턴. 메인 세션이 그걸 `1.0.0` 으로 `merge --no-ff` 한다.
+
 ## 결정 대기 / 오픈 이슈
 
 - [x] Bundle ID — `th1ngjin.Sauna`
