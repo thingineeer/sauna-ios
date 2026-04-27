@@ -5,41 +5,57 @@
 
 ## 한 줄
 
-**디자인 정본 v3 (`design-handoff/v3-jjimjilbang/Jjimjilbang Flow.html`) 의 17개 화면을 SwiftUI 로 구현. TDD + 모듈화 + CI/CD + 인프라 스캐폴딩 완료. iOS 단독으로 build·test 성공. 서버는 별도 worktree.**
+**디자인 정본 v3 + iOS Phase 1 + Phase 2 wireup + 서버 Phase 2 wireup + Sentry + Xcode project + Fastlane TestFlight + tag→CI 까지 코드로 완료.** 외부 시크릿 / 도메인 등록만 남음.
 
 ## 검증
 
 ```
 $ swift test --package-path ios/SaunaPackage
-Executed 65 tests, with 0 failures (0 unexpected) in 0.019 (0.025) seconds
+Executed 72 tests, with 0 failures (0 unexpected) in 0.018 (0.024) seconds
 
 $ swift test --package-path server
-Executed 10 tests, with 0 failures (0 unexpected) in 0.222 (0.224) seconds
+Executed 18 tests, with 0 failures (0 unexpected) in 0.236 (0.238) seconds
 
 $ swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources server/Sources
-Done linting! Found 0 violations, 0 serious in 162 files.
+Done linting! Found 0 violations, 0 serious in 170 files.
 ```
 
-**전체: 75 tests pass / 0 failures / 0 lint violations across 162 files.**
+**전체: 90 tests pass / 0 failures / 0 lint violations across 170 files.**
 
-## iOS 모듈 (SPM 14개)
+## 모듈 (iOS 15 + server 1)
+
+### iOS SPM (`ios/SaunaPackage/`)
 
 | 모듈 | 상태 | 테스트 | 용도 |
 |---|---|---|---|
-| `Domain` | ✅ | 17건 | 순수 Swift entities/UseCases (TDD) |
-| `DomainInterfaces` | ✅ | — | RoomRepository / NicknameRepository / Authenticator 프로토콜 |
-| `NetworkCore` | ✅ | 5건 (DataTests) | URLSession + WebSocket |
-| `Data` | ✅ | 5건 (DataTests) | KeychainNicknameStore + RemoteRoomRepository |
+| `Domain` | ✅ | 21건 | 순수 Swift entities + UseCases (TDD) |
+| `DomainInterfaces` | ✅ | — | RoomRepo / NicknameRepo / Authenticator 프로토콜 |
+| `NetworkCore` | ✅ | (DataTests) | Endpoint + URLSessionNetworkClient + WebSocketClient (actor) |
+| `Data` | ✅ | 11건 | KeychainNicknameStore + RemoteRoomRepository + PasskeyAuthenticator |
 | `DesignSystem` | ✅ | 4건 | JJIM 토큰 + Gradients + Pattern + Typography |
 | `CustomIcons` | ✅ | — | 24개 아이콘 (SwiftUI Path) |
-| `PixelMascot` | ✅ | 5건 | 콩이 16x16/32x32 픽셀 렌더러 + 24색 팔레트 |
+| `PixelMascot` | ✅ | 5건 | 콩이 16x16/32x32 + 24색 팔레트 |
 | `SharedUI` | ✅ | 1건 | ClayWall/Floor/Lamp/Button/Header/Avatar/RoomCard/TabBar/Pagination |
 | `WebViewBridge` | ✅ | — | SaunaWebView (origin 화이트리스트 + popup 차단) |
+| `Observability` | ✅ | 3건 | Sentry-Cocoa wrapper + 휘발성 정책 가드 |
 | `FeatureOnboarding` | ✅ | 6건 | Splash + Onboard 1/2/3 + Passkey 1/2/3 + 7-step VM |
 | `FeatureHome` | ✅ | 4건 | morning/evening/night + Enter |
-| `FeatureRoom` | ✅ | 13건 | rise 애니 + density 변형 + 한글 키보드 mock |
+| `FeatureRoom` | ✅ | 13건 | rise 애니 + density + 키보드 |
 | `FeatureMe` | ✅ | 3건 | Profile + Settings (WKWebView 약관) + NotifPrefs |
-| `SaunaApp` | ✅ | 1건 | Composition Root + RootView 탭 네비 |
+| `SaunaApp` | ✅ | 1건 | Composition Root (live/mock) + RootView 탭 네비 |
+
+### Server (`server/`)
+
+| 영역 | 상태 | 테스트 | 용도 |
+|---|---|---|---|
+| `/health` | ✅ | 1 | 200 OK + version |
+| `WS /ws/rooms/:roomId` | ✅ | 5 | per-room route, in-memory PubSub fanout |
+| `PubSubBus` | ✅ | 4 | InMemory + RedisPubSubBus (REDIS_URL fallback) |
+| `Postgres pool` | ✅ | — | DATABASE_URL 자동 wireup, ensureSchema |
+| `PasskeyStore` | ✅ | 4 | InMemoryPasskeyStore + PostgresPasskeyStore (실 SQL) |
+| `PasskeyController` | ✅ | 4 | begin/finish + ChallengeStore actor + SecRandom 32-byte |
+| `RateLimiter` | ✅ | (RoomController) | per-userId 미들웨어 |
+| `Dockerfile` | ✅ | — | multi-stage Swift slim |
 
 ## 화면 ↔ 디자인 정본 매핑
 
@@ -50,57 +66,54 @@ Done linting! Found 0 violations, 0 serious in 162 files.
 | P1·P2·P3 Passkey | `JjimPasskey1/2/3` |
 | H1·H2·H3 Home (morning/evening/night) | `JjimHome(timeOfDay:)` |
 | H4 Enter | `JjimEnter` |
-| R1 Daily/medium | `JjimRoom(roomId:.daily, crowd:.medium)` |
-| R2 Stock/packed | `JjimRoom(roomId:.stock, crowd:.packed)` |
-| R3 Job/lonely | `JjimRoom(roomId:.job, crowd:.lonely)` |
-| R4 Daily/lonely | `JjimRoom(roomId:.daily, crowd:.lonely)` |
+| R1~R4 Room (density 변형) | `JjimRoom(roomId:, crowd:)` |
 | K1·K2 Keyboard | `JjimRoom(keyboardUp: true)` |
-| M1 Profile | `JjimProfile` |
-| M2 Settings | `JjimSettings` |
-| M3 Notif | `JjimNotifPrefs` |
+| M1·M2·M3 Me/Settings/Notif | `JjimProfile`, `JjimSettings`, `JjimNotifPrefs` |
 
-## TDD 통계
+## v2 진행 상황 (Phase 2 wireup)
 
-| 영역 | 테스트 수 | 어떤 행동을 검증하나 |
-|---|---|---|
-| Room.crowd | 3 | 인원 → lonely/medium/packed 분류 + Server-wire raw values + AllCases 순서 |
-| Nickname | 2 | 유효 윈도우 + display handle |
-| SlidingWindowRateLimiter | 3 | 1초 2개 + 거부 + 윈도우 슬라이딩 |
-| SendMessageUseCase | 5 | empty/trim/length/rate-limit/repo-failure |
-| AssignDailyNicknameUseCase | 3 | 캐시 재사용 + KST 자정 mint + dayBounds |
-| RisingPhysics | 5 | y/opacity envelope/blur/scale/sway bound |
-| RoomViewModel | 7 | crowd→head/spawn / spawn 결정론 / 8개 cap / tick 만료 / sendInput trim·empty |
-| OnboardingFlow | 5 | forward/back/skip/reroll(1회) / setNickname |
-| HomeData TimeOfDay | 3 | 시각대 분포 / 시각→bucket / 시각대 비교 |
-| Settings/NotifPrefs | 3 | 디자인 기본값 정합성 |
-| PixelMascot Sprites | 4 | 16x16/32x32 무결성 / fallback / 팔레트 커버리지 |
-| Endpoint | 2 | GET URL+headers / POST body |
-| URLSessionNetworkClient | 3 | 200 decode / non-2xx / decode failure |
-| KeychainNicknameStore | 3 | 첫 mint 영속 / reroll 교체 / 자정 stale |
-| RemoteRoomRepository | 2 | send 요청 형태 / occupancy decode |
-| DesignSystem | 4 | clay base hex / cream / radius monotonic / spacing monotonic |
-| Module smoke (5×) | 5 | 모듈 import + 식별자 회귀 |
-| **합계** | **65** | |
+| 항목 | 상태 |
+|---|---|
+| AppContainer.live() 실 Data 레이어 주입 | ✅ |
+| Apple Passkey iOS 어댑터 (ASAuthorization) | ✅ 코드 |
+| Sentry SDK + 휘발성 정책 | ✅ |
+| Vapor Postgres 풀 + ensureSchema + PasskeyStore 실 SQL | ✅ |
+| PasskeyController challenge generation (SecRandom) | ✅ |
+| Xcode project 생성기 (xcodegen) | ✅ project.yml |
+| Fastlane TestFlight 템플릿 | ✅ |
+| GitHub Actions tag→TestFlight 잡 | ✅ |
 
-## 서버 (Vapor)
+## 남은 외부 작업 (코드 외 — 시크릿/계정/도메인)
 
-- ✅ Package.swift + Sources/SaunaServer/ + Tests/SaunaServerTests/
-- ✅ `/health` 200 OK
-- ✅ `WebSocket /ws/rooms/:roomId` (daily/stock/job 만 허용)
-- ✅ `PubSubBus` 프로토콜 + `InMemoryPubSubBus` (test) + `RedisPubSubBus` (prod)
-- ✅ `PasskeyController` 4개 스텁 (register/begin·finish, login/begin·finish)
-- ✅ `RateLimiter` 미들웨어 (per-user fixed window)
-- ✅ `Dockerfile` multi-stage Swift slim
-- ✅ `server/README.md` 로컬 실행 + env + Docker 가이드
-- 10 tests pass (Health 1, InMemoryPubSub 4, RoomController 5)
-- decisions: 알 수 없는 roomId 404, RediStack/AsyncKit `@unchecked Sendable`,
-  Postgres 풀은 phase 3, Bus fanout `Task.detached`, WS userId 임시 query
+| 항목 | 무엇이 필요 |
+|---|---|
+| Apple Developer Team 가입 + App Store Connect 앱 등록 | $99/년 멤버십, Bundle ID `th1ngjin.Sauna` 등록 |
+| sauna.app 도메인 등록 + DNS | 도메인 구매, A 레코드 |
+| `webcredentials:sauna.app` (Passkey associated domain) | `sauna.app/.well-known/apple-app-site-association` 호스팅 (App ID 와 team ID 포함) |
+| TestFlight closed beta 사용자 초대 | App Store Connect 의 Internal Testing |
+| Sentry 계정 + DSN | sentry.io 가입, 프로젝트 만들고 DSN 복사 |
+| GitHub secrets 등록 | `gh secret set` 또는 web UI: FASTLANE_TEAM_ID, FASTLANE_ITC_TEAM_ID, APP_STORE_CONNECT_API_KEY_KEY_ID/ISSUER_ID/KEY, SAUNA_SENTRY_DSN |
+| AWS Seoul 계정 + Terraform apply | IAM 사용자, ECR 푸시, ECS 배포 |
+| Postgres + Redis 운영 인스턴스 | RDS / ElastiCache provisioning |
+| WebAuthn 라이브러리 통합 (phase 3) | swift-server/webauthn-swift 또는 자체 — register/finish 의 CBOR/COSE 검증 완성 |
 
-## v2 (Phase 2) 작업 — 추후 wire up
+## 시작 가이드
 
-- ✅ ~~Vapor 서버 머지~~ (완료)
-- `RootView` `AppContainer.live()` 가 `RemoteRoomRepository` + `KeychainNicknameStore` 를 주입하도록 교체
-- Apple `ASAuthorizationController` 를 통한 진짜 Passkey 등록·인증
-- Xcode 앱 타겟 (`ios/Sauna.xcodeproj`) 생성 → SPM 의존성 + Info.plist + Capabilities (Associated Domains for Passkey, Push)
-- Postgres 풀 + WebAuthn library 통합
-- TestFlight closed beta + Sentry
+```bash
+# 1) iOS SPM 빌드/테스트 (Xcode 안 열고도 가능)
+cd ios && make triple-check        # build + test + lint
+
+# 2) Xcode 프로젝트 생성 (xcodegen 필요)
+brew install xcodegen
+make xcode
+
+# 3) 로컬 인프라 (Redis + Postgres)
+cd ../infra && make local-up
+
+# 4) 서버 로컬 실행
+cd ../server && swift run SaunaServer
+# (DATABASE_URL 미설정이면 InMemoryPasskeyStore 폴백)
+
+# 5) 첫 TestFlight 빌드 (시크릿 입력 후)
+cd ../ios && bundle install && bundle exec fastlane beta
+```

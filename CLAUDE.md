@@ -9,20 +9,26 @@
 
 ## 현재 단계 (2026-04-28)
 
-**iOS Phase 1 완료 + Phase 2 wiring 준비.**
+**iOS + 서버 Phase 2 wireup 코드 완료. 외부 시크릿 / 도메인 등록만 남음.**
 
-- ✅ 디자인 정본 v3 (Jjimjilbang Flow) — 17개 화면 모두 SwiftUI 로 구현
+- ✅ 디자인 정본 v3 (Jjimjilbang Flow) — 17 화면 모두 SwiftUI 구현
 - ✅ 기술 스택 확정 (`docs/tech-stack-final.md`)
-- ✅ iOS SPM 패키지 — 14 모듈 + 9 테스트 타겟, 모두 컴파일
-- ✅ TDD: Domain UseCases + RisingPhysics + RoomViewModel + KeychainNicknameStore
-  - **65 tests pass · 0 failures · 0 SwiftLint violations**
-- ✅ NetworkCore: Endpoint + URLSessionNetworkClient + URLSessionWebSocketClient (Swift 6 actor)
-- ✅ Data: KeychainNicknameStore (Live + InMemory) + RemoteRoomRepository
-- ✅ WebViewBridge: SaunaWebView (WKWebView origin 화이트리스트 + popup 차단)
+- ✅ iOS SPM 패키지 — 15 모듈 (Observability 추가) + 10 테스트 타겟
+- ✅ **TDD 합계: iOS 72 + server 18 = 90 tests · 0 fail · 0 SwiftLint violations / 170 files**
+- ✅ AppContainer.live() — KeychainNicknameStore + RemoteRoomRepository + PasskeyAuthenticator 실 wireup
+- ✅ Apple Passkey 어댑터 (ASAuthorizationPlatformPublicKeyCredentialProvider)
+- ✅ Sentry-Cocoa 8.x — 휘발성 정책 가드 (chat.message breadcrumb drop, headers 마스킹)
+- ✅ Vapor 서버: Postgres 풀 + ensureSchema + PostgresPasskeyStore 실 SQL + InMemoryPasskeyStore 폴백
+- ✅ PasskeyController: SecRandomCopyBytes 32-byte challenge + ChallengeStore actor + 5분 TTL
 - ✅ 인프라: docker-compose (Redis + Postgres) + Terraform skeleton
-- ✅ CI/CD: GitHub Actions (iOS / server / lint-pr) + .swiftlint.yml + CODEOWNERS + PR 템플릿
-- ⏳ 서버 (Vapor): 별도 worktree 작업 진행 중 (`feature/server-scaffold`)
-- ⏳ 다음: Xcode 앱 타겟 생성 + 실제 Passkey 연결 + TestFlight
+- ✅ CI/CD: GitHub Actions (iOS build/test, server, lint-pr) + tag→TestFlight 잡
+- ✅ Xcode project 자동 생성: `ios/project.yml` (xcodegen) + `ios/Makefile` + Fastlane
+- ⏳ **남은 외부 작업** (코드 외):
+  - App Store Connect 앱 등록 + Apple Developer Team 가입
+  - `sauna.app` 도메인 + `/.well-known/apple-app-site-association` 호스팅 (Passkey associated domain)
+  - GitHub secrets 입력: FASTLANE_TEAM_ID / APP_STORE_CONNECT_API_KEY_* / SENTRY DSN
+  - WebAuthn 라이브러리 통합 (phase 3 — 현재는 challenge generation 까지)
+  - 첫 TestFlight 빌드 업로드 → closed beta
 
 ## 먼저 읽어야 할 파일 (순서 중요)
 
