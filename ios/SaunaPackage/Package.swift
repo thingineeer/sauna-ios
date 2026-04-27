@@ -16,10 +16,15 @@ let package = Package(
         .library(name: "PixelMascot",       targets: ["PixelMascot"]),
         .library(name: "SharedUI",          targets: ["SharedUI"]),
         .library(name: "WebViewBridge",     targets: ["WebViewBridge"]),
+        .library(name: "Observability",     targets: ["Observability"]),
         .library(name: "FeatureOnboarding", targets: ["FeatureOnboarding"]),
         .library(name: "FeatureHome",       targets: ["FeatureHome"]),
         .library(name: "FeatureRoom",       targets: ["FeatureRoom"]),
         .library(name: "FeatureMe",         targets: ["FeatureMe"]),
+    ],
+    dependencies: [
+        // Sentry-Cocoa: 에러 / 크래시 / breadcrumb 보고. iOS 17+ 지원.
+        .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.36.0"),
     ],
     targets: [
         // ── Pure ────────────────────────────────────────────────────────
@@ -40,6 +45,11 @@ let package = Package(
             "DesignSystem", "CustomIcons", "PixelMascot",
         ]),
         .target(name: "WebViewBridge", dependencies: ["DesignSystem"]),
+
+        // ── Observability ──────────────────────────────────────────────
+        .target(name: "Observability", dependencies: [
+            .product(name: "Sentry", package: "sentry-cocoa"),
+        ]),
 
         // ── Features ───────────────────────────────────────────────────
         .target(name: "FeatureOnboarding", dependencies: [
@@ -64,7 +74,7 @@ let package = Package(
         .target(name: "SaunaApp", dependencies: [
             "Domain", "DomainInterfaces", "Data", "NetworkCore",
             "DesignSystem", "CustomIcons", "PixelMascot", "SharedUI",
-            "WebViewBridge",
+            "WebViewBridge", "Observability",
             "FeatureOnboarding", "FeatureHome", "FeatureRoom", "FeatureMe",
         ]),
 
@@ -78,5 +88,6 @@ let package = Package(
         .testTarget(name: "FeatureHomeTests",       dependencies: ["FeatureHome"]),
         .testTarget(name: "FeatureRoomTests",       dependencies: ["FeatureRoom"]),
         .testTarget(name: "FeatureMeTests",         dependencies: ["FeatureMe"]),
+        .testTarget(name: "ObservabilityTests",     dependencies: ["Observability"]),
     ]
 )
