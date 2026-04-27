@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sauna · Jjimjilbang Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0;background:#0a0604;font-family:'Noto Sans KR',-apple-system,sans-serif;color:#FFE8C8;}
+  *{box-sizing:border-box;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="lib/tokens.jsx"></script>
+<script type="text/babel" src="lib/sauna-ds.jsx"></script>
+<script type="text/babel" src="lib/design-canvas.jsx"></script>
+<script type="text/babel" src="lib/sauna-phone.jsx"></script>
+<script type="text/babel" src="lib/pixel-mascot.jsx"></script>
+
+<script type="text/babel" src="lib/jjim-tokens.jsx"></script>
+<script type="text/babel" src="lib/jjim-screens-entry.jsx"></script>
+<script type="text/babel" src="lib/jjim-screens-main.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+const { SaunaPhone } = window;
+const {
+  JjimSplash,
+  JjimOnboard1, JjimOnboard2, JjimOnboard3,
+  JjimPasskey1, JjimPasskey2, JjimPasskey3,
+  JjimHome, JjimEnter, JjimRoom,
+  JjimProfile, JjimSettings, JjimNotifPrefs,
+} = window;
+
+const PHONE_W = 393, PHONE_H = 852;
+
+function Phone({ children, kb = false }) {
+  return <SaunaPhone width={PHONE_W} height={PHONE_H} keyboardUp={kb}>{children}</SaunaPhone>;
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+      {/* ─── Intro ─────────────────── */}
+      <DCSection id="intro" title="Sauna — 황토방 (Jjimjilbang) 톤"
+        subtitle="목재 사우나가 아니라 한국 황토방. 황토 벽돌 + 마룻바닥 + 가마 글로우 + 픽셀 콩이. v2 기능을 그대로 황토방 톤으로 다시 짠 풀 플로우.">
+        <DCArtboard id="intro-cover" label="이 캔버스에서 보는 것"
+          width={760} height={520}>
+          <div style={{
+            width:'100%', height:'100%', padding: 36, overflow:'auto',
+            background:'#1a0d04',
+            color:'#FFE8C8',
+            fontFamily:"'Noto Sans KR', sans-serif",
+          }}>
+            <div className="mono" style={{fontSize:11, color:'#FF9050',
+              letterSpacing:2.5, fontWeight:700}}>FULL FLOW · v3 · CLAY</div>
+            <div style={{fontSize:30, fontWeight:800, letterSpacing:-0.6,
+              marginTop:6}}>
+              황토방 톤으로 다시 짠 Sauna 전체 플로우
+            </div>
+            <div style={{fontSize:13, color:'rgba(255,220,180,0.78)',
+              marginTop:10, lineHeight:1.65, maxWidth:620}}>
+              메이플 사우나 톤(v2)을 한국형 황토방 톤으로 옮겼어요. 황토 벽돌 벽, 짙은 갈색 마룻바닥, 우상단 황토 가마(등), 그리고 픽셀 콩이가 마루에 앉아 있어요. 모든 화면은 v2 기능과 1:1 대응합니다.
+            </div>
+
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr',
+              gap:14, marginTop:24}}>
+              {[
+                ['1 · Entry', 'Splash → Onboarding 1·2·3'],
+                ['2 · Passkey', '안내 → 시스템 시트 → 완료'],
+                ['3 · Home', '아침 / 저녁 / 새벽 — 분위기'],
+                ['4 · Enter', '문 열림 트랜지션'],
+                ['5 · Room', 'lonely / medium / packed'],
+                ['6 · Keyboard', '입력 중 상태 (한글)'],
+                ['7 · Me · Settings · Notif', '데이터 안 남는 프로필'],
+              ].map(([t,d]) => (
+                <div key={t} style={{
+                  padding:'14px 16px', borderRadius:12,
+                  background:'rgba(60,28,12,0.5)',
+                  border:'1px solid rgba(255,180,110,0.18)'}}>
+                  <div style={{fontSize:13, fontWeight:700,
+                    color:'#FFD4A0'}}>{t}</div>
+                  <div style={{fontSize:11.5,
+                    color:'rgba(255,220,180,0.72)',
+                    marginTop:3, lineHeight:1.5}}>{d}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{marginTop:22, padding:'12px 16px', borderRadius:10,
+              background:'rgba(255,150,70,0.08)',
+              border:'1px dashed rgba(255,160,80,0.4)',
+              fontSize:12, color:'rgba(255,220,180,0.72)',
+              lineHeight:1.6}}>
+              ✱ 색이 너무 진해 보이면 <b style={{color:'#FFD4A0'}}>좌측 1·2·3 섹션</b>부터 보고, 메시지 인터랙션은 <b style={{color:'#FFD4A0'}}>Room 섹션(lonely/medium/packed)</b>을 비교해 주세요. 끝나면 "이 톤으로 가자" / "메이플 톤이 나았다" 알려주시면 한 쪽으로 정리할게요.
+            </div>
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 1 · Entry ─────────────────── */}
+      <DCSection id="entry" title="1 · Entry — Splash → Onboarding"
+        subtitle="처음 들어왔을 때. 황토 가마 로고 → 사우나가 뭔지 → 규칙 → 오늘의 닉네임. 닉네임은 자정마다 새로.">
+        <DCArtboard id="splash" label="S0 · Splash"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimSplash/></Phone>
+        </DCArtboard>
+        <DCArtboard id="ob1" label="S1 · Onboard 1/3 — 황토방이 뭐야"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimOnboard1/></Phone>
+        </DCArtboard>
+        <DCArtboard id="ob2" label="S2 · Onboard 2/3 — 규칙 (휘발)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimOnboard2/></Phone>
+        </DCArtboard>
+        <DCArtboard id="ob3" label="S3 · Onboard 3/3 — 오늘의 닉네임"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimOnboard3/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 2 · Passkey ─────────────────── */}
+      <DCSection id="passkey" title="2 · Passkey — 비번 없이 이 폰 하나로"
+        subtitle="이메일·전화번호 안 받음. iOS Passkey(Face ID/Touch ID) 한 번이면 로그인. 폰 바뀌면 재등록.">
+        <DCArtboard id="pk1" label="P1 · 안내"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimPasskey1/></Phone>
+        </DCArtboard>
+        <DCArtboard id="pk2" label="P2 · iOS 시스템 시트 (Face ID)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimPasskey2/></Phone>
+        </DCArtboard>
+        <DCArtboard id="pk3" label="P3 · 완료 — 황토방 들어가기"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimPasskey3/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 3 · Home ─────────────────── */}
+      <DCSection id="home" title="3 · Home — 시간대 변형"
+        subtitle="똑같은 3개 방 (일상 / 주식 / 취준). 시간이 분위기를 정함. 인원수와 카피만 변함.">
+        <DCArtboard id="home-morning"
+          label="H1 · Home (morning · 09:41)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimHome tod="morning"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="home-evening"
+          label="H2 · Home (evening · 18:47) — 퇴근 피크"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimHome tod="evening"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="home-night"
+          label="H3 · Home (night · 03:28) — 새벽 적막"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimHome tod="night"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="enter" label="H4 · Enter — 황토 문 열림"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimEnter/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 4 · Room density ─────────────────── */}
+      <DCSection id="room" title="4 · Room — 인원 밀도"
+        subtitle="같은 방, 다른 사람 수. 메시지 빈도와 라이프타임이 달라지면서 분위기가 변함. 휘발 방식 = rise (위로 올라가며 흩어짐).">
+        <DCArtboard id="room-lonely"
+          label="R1 · 일상 · 적막 (8명)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimRoom roomId="daily" crowd="lonely"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="room-medium"
+          label="R2 · 일상 · 평온 (142명)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimRoom roomId="daily" crowd="medium"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="room-stock-packed"
+          label="R3 · 주식 · 폭주 (312명) — 장중 피크"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimRoom roomId="stock" crowd="packed"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="room-job-lonely"
+          label="R4 · 취준 · 새벽 (3명)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimRoom roomId="job" crowd="lonely"/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 5 · Keyboard ─────────────────── */}
+      <DCSection id="keyboard" title="5 · 입력 중 (키보드 ON)"
+        subtitle="iOS 한글 키보드(280px) 올라온 상태. 입력바가 위로 푸시되고 메시지 영역이 압축됨. 입력바는 따뜻한 황토 액센트로 활성 상태 강조.">
+        <DCArtboard id="kb-daily" label="K1 · 일상 방 (입력 중)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone kb={true}>
+            <JjimRoom roomId="daily" crowd="medium" keyboardUp={true}/>
+          </Phone>
+        </DCArtboard>
+        <DCArtboard id="kb-stock" label="K2 · 주식 방 (피크 중 입력)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone kb={true}>
+            <JjimRoom roomId="stock" crowd="packed" keyboardUp={true}/>
+          </Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 6 · Me · Settings ─────────────────── */}
+      <DCSection id="me" title="6 · Me · Settings · Notif"
+        subtitle="기록은 저장 안 함을 본질로. 프로필은 '얼마나 앉아 있었는지'만. 설정은 최소 리스트.">
+        <DCArtboard id="profile" label="M1 · Profile — 나"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimProfile/></Phone>
+        </DCArtboard>
+        <DCArtboard id="settings" label="M2 · Settings"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimSettings/></Phone>
+        </DCArtboard>
+        <DCArtboard id="notif" label="M3 · 알림 (피크 알림 미리보기)"
+          width={PHONE_W} height={PHONE_H}>
+          <Phone><JjimNotifPrefs/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

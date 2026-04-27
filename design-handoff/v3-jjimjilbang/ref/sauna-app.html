@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sauna — Full App Flow</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; overflow: hidden; height: 100%; }
+  body { font-family: 'Space Grotesk', 'Noto Sans KR', -apple-system, system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .kor  { font-family: 'Noto Sans KR', sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="lib/tokens.jsx"></script>
+<script type="text/babel" src="lib/sauna-ds.jsx"></script>
+<script type="text/babel" src="lib/design-canvas.jsx"></script>
+
+<script type="text/babel">
+window.__MSG_BANK = { daily: [], stock: [], job: [] };
+</script>
+
+<script type="text/babel" src="lib/concept-sauna-deep.jsx"></script>
+<script type="text/babel" src="lib/sauna-phone.jsx"></script>
+<script type="text/babel" src="lib/sauna-screens.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+const { SaunaPhone, SAUNA } = window;
+const {
+  ScreenSplash, ScreenOnboard1, ScreenOnboard2, ScreenOnboard3,
+  ScreenHome, ScreenEnter, ScreenRoom, ScreenRoomKeyboard,
+  ScreenProfile, ScreenSettings, ScreenNotifPrefs,
+} = window;
+
+function App() {
+  return (
+    <DesignCanvas>
+      {/* ─── Intro ─────────────────── */}
+      <DCSection id="intro" title="Sauna — Full App Flow"
+        subtitle="원목 사우나 톤의 익명 휘발성 대화 앱. 시간 제한 없음 · 언제든지 나갈 수 있음. 방은 3개 고정 (일상 · 주식 · 취준) + 시즌마다 개발자가 방 추가. 모든 아이콘은 커스텀 SVG (이모지 없음).">
+        <div style={{
+          width: 760, padding: '22px 26px', borderRadius: 12,
+          background: 'rgba(201,100,66,0.08)', border: '1px solid rgba(201,100,66,0.2)',
+          color: 'rgba(40,30,20,0.85)', fontFamily: '-apple-system, system-ui, sans-serif',
+          fontSize: 13, lineHeight: 1.65,
+        }}>
+          <div style={{fontWeight: 700, marginBottom: 10, fontSize: 15, color: '#c96442'}}>제품 컨셉</div>
+          <div>원목 사우나실 안에서 익명으로 땀 흘리듯 말을 뱉는 앱. 이름은 매일 자정 새로. 말은 증기처럼 올라오다 사라짐. 방은 3개 고정 (<b>일상 · 주식 · 취준</b>), 시즌마다 개발자가 새 방을 추가.</div>
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 14, marginTop: 14}}>
+            <div>
+              <div style={{fontWeight: 700, fontSize: 12, marginBottom: 4}}>① Splash / Onboard</div>
+              <div style={{fontSize: 11.5, color: 'rgba(40,30,20,0.65)', lineHeight: 1.55}}>
+                ·&nbsp;로고<br/>
+                ·&nbsp;휘발성 규칙<br/>
+                ·&nbsp;닉네임 배정<br/>
+                ·&nbsp;첫 방 선택
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight: 700, fontSize: 12, marginBottom: 4}}>② Home</div>
+              <div style={{fontSize: 11.5, color: 'rgba(40,30,20,0.65)', lineHeight: 1.55}}>
+                ·&nbsp;3개 방 카드<br/>
+                ·&nbsp;실시간 인원/밀도<br/>
+                ·&nbsp;시즌 방 (SOON)<br/>
+                ·&nbsp;오늘의 닉네임
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight: 700, fontSize: 12, marginBottom: 4}}>③ Room</div>
+              <div style={{fontSize: 11.5, color: 'rgba(40,30,20,0.65)', lineHeight: 1.55}}>
+                ·&nbsp;증기 말풍선<br/>
+                ·&nbsp;시간 제한 없음<br/>
+                ·&nbsp;언제든지 ← 나가기<br/>
+                ·&nbsp;키보드 ON 상태
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight: 700, fontSize: 12, marginBottom: 4}}>④ Me</div>
+              <div style={{fontSize: 11.5, color: 'rgba(40,30,20,0.65)', lineHeight: 1.55}}>
+                ·&nbsp;프로필 (세션 기록 X)<br/>
+                ·&nbsp;설정 (알림·다크)<br/>
+                ·&nbsp;알림 프리뷰<br/>
+                ·&nbsp;폰트 · 모션
+              </div>
+            </div>
+          </div>
+        </div>
+      </DCSection>
+
+      {/* ─── Design System ─────────── */}
+      <DCSection id="ds" title="0 · Design System"
+        subtitle="커스텀 SVG 아이콘 세트 · 색 토큰 · 프리미티브. 이모지는 앱 전반에 등장하지 않음.">
+        <DCArtboard id="ds-icons" label="Icon set (24 글리프)" width={760} height={480}>
+          <DesignSystemSheet/>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 1. Entry flow ───────────── */}
+      <DCSection id="entry" title="1 · 첫 진입 — Splash → Onboarding (3 step) → 첫 방 선택"
+        subtitle="처음 앱을 여는 순간부터 첫 방에 입장하기 직전까지. 전부 원목 사우나 톤.">
+        <DCArtboard id="splash" label="0. Splash (1.5s)" width={413} height={874}>
+          <SaunaPhone><ScreenSplash/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="ob1" label="1. 환영 · 사우나가 뭔가" width={413} height={874}>
+          <SaunaPhone><ScreenOnboard1/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="ob2" label="2. 규칙 · 증기처럼 휘발" width={413} height={874}>
+          <SaunaPhone><ScreenOnboard2/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="ob3" label="3. 오늘의 닉네임 배정" width={413} height={874}>
+          <SaunaPhone><ScreenOnboard3/></SaunaPhone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 2. Home ───────────────── */}
+      <DCSection id="home" title="2 · Home — 3개 방 목록"
+        subtitle="일상 · 주식 · 취준 3개 방 카드. 각 방의 현재 밀도를 작은 증기 미니뷰로. 시즌 방은 SOON 자리 (개발자가 방 추가). 상단에 오늘의 닉네임 + 하단 탭바.">
+        <DCArtboard id="home-morning" label="아침 · 편안한 리듬" width={413} height={874}>
+          <SaunaPhone><ScreenHome timeOfDay="morning"/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="home-evening" label="저녁 · 퇴근 피크" width={413} height={874}>
+          <SaunaPhone><ScreenHome timeOfDay="evening"/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="home-night" label="새벽 · 적막" width={413} height={874}>
+          <SaunaPhone><ScreenHome timeOfDay="night"/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="enter" label="방 탭 → 입탕 중..." width={413} height={874}>
+          <SaunaPhone><ScreenEnter/></SaunaPhone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 3. Room (핵심) ─────────── */}
+      <DCSection id="room" title="3 · Room — 방 안 (핵심 경험)"
+        subtitle="사우나실 내부. 증기 말풍선이 바닥에서 천장으로 올라오며 사라짐. 시간 제한 없이 언제든지 ← 로 나갈 수 있음. 헤더에는 현재 실시간 인원만 표시.">
+        <DCArtboard id="room-daily" label="일상 방 · 편안한 밀도" width={413} height={874}>
+          <SaunaPhone><ScreenRoom roomId="daily" crowd="medium"/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="room-stock" label="주식 방 · 피크 (VI)" width={413} height={874}>
+          <SaunaPhone><ScreenRoom roomId="stock" crowd="packed"/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="room-job" label="취준 방 · 적막" width={413} height={874}>
+          <SaunaPhone><ScreenRoom roomId="job" crowd="lonely"/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="room-kb" label="키보드 ON · 입력 중" width={413} height={874}>
+          <SaunaPhone keyboardUp={true}>
+            <ScreenRoomKeyboard roomId="daily"/>
+          </SaunaPhone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 4. Me & Settings ───────── */}
+      <DCSection id="me" title="4 · Me — 프로필 · 설정"
+        subtitle="메시지 히스토리는 원천적으로 없음. 대신 '내가 앉은 세션 수 / 총 시간 / 오늘의 닉네임' 같은 메타 정보만. 설정은 최소한.">
+        <DCArtboard id="profile" label="프로필 · 세션 기록 없음" width={413} height={874}>
+          <SaunaPhone><ScreenProfile/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="settings" label="설정 · 최소 리스트" width={413} height={874}>
+          <SaunaPhone><ScreenSettings/></SaunaPhone>
+        </DCArtboard>
+        <DCArtboard id="notif" label="알림 프리뷰 · 피크 알림" width={413} height={874}>
+          <SaunaPhone><ScreenNotifPrefs/></SaunaPhone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── Next ───────────────── */}
+      <DCSection id="next" title="다음"
+        subtitle="이 플로우 OK? → 인터랙션 프로토타입(실제 탭으로 이동)으로 발전. 방 진입 모션, 증기 입력 애니메이션 등 모션 디테일 레이어 추가.">
+        <div style={{
+          width: 720, padding: '20px 24px', borderRadius: 12,
+          background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.08)',
+          color: 'rgba(40,30,20,0.85)', fontFamily: '-apple-system, system-ui, sans-serif',
+          fontSize: 13, lineHeight: 1.7,
+        }}>
+          <div style={{fontWeight: 700, marginBottom: 8, fontSize: 14}}>남은 것</div>
+          <div>· 방 진입 트랜지션 (문 열림 · 증기 확산)</div>
+          <div>· 증기 입력 시 "말이 증기로 변하는" 모션</div>
+          <div>· 시즌 방 추가 플로우 (개발자용 · admin)</div>
+          <div>· 방 선택 → 방 내부 인터랙션 프로토타입</div>
+          <div>· Empty state, 에러/연결 끊김, 첫 증기 띄우기 유도</div>
+        </div>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+// -----------------------------------------------------------
+// Design System sheet — icon reference for handoff
+// -----------------------------------------------------------
+function DesignSystemSheet() {
+  const {
+    IcSaunaMark, AnonAvatar,
+    IcDaily, IcStock, IcJob, IcWorldCup, IcMedal,
+    IcSteam, IcWaves, IcLeaf,
+    IcDoor, IcPerson, IcGear,
+    IcClock, IcRefresh, IcDice, IcBell, IcMoon, IcVibrate,
+    IcContrast, IcMotion, IcType, IcTrash, IcInfo,
+    IcArrowLeft, IcArrowUpRight, IcChevron, IcHeart,
+  } = window;
+
+  const icons = [
+    {n:'SaunaMark', C: IcSaunaMark, brand: true},
+    {n:'Daily',     C: IcDaily},
+    {n:'Stock',     C: IcStock},
+    {n:'Job',       C: IcJob},
+    {n:'WorldCup',  C: IcWorldCup},
+    {n:'Medal',     C: IcMedal},
+    {n:'Steam',     C: IcSteam},
+    {n:'Waves',     C: IcWaves},
+    {n:'Leaf',      C: IcLeaf},
+    {n:'Door',      C: IcDoor},
+    {n:'Person',    C: IcPerson},
+    {n:'Gear',      C: IcGear},
+    {n:'Clock',     C: IcClock},
+    {n:'Refresh',   C: IcRefresh},
+    {n:'Dice',      C: IcDice},
+    {n:'Bell',      C: IcBell},
+    {n:'Moon',      C: IcMoon},
+    {n:'Vibrate',   C: IcVibrate},
+    {n:'Contrast',  C: IcContrast},
+    {n:'Motion',    C: IcMotion},
+    {n:'Type',      C: IcType},
+    {n:'Trash',     C: IcTrash},
+    {n:'Info',      C: IcInfo},
+    {n:'ArrowLeft', C: IcArrowLeft},
+    {n:'ArrowUR',   C: IcArrowUpRight},
+    {n:'Chevron',   C: IcChevron},
+    {n:'Heart',     C: IcHeart},
+  ];
+
+  const cream = '#FFE8C8';
+  const accent = '#FFC870';
+
+  return (
+    <div style={{
+      position:'absolute', inset:0, padding: 24, overflow:'auto',
+      background: 'linear-gradient(180deg, #1a0804 0%, #0f0602 100%)',
+      color: cream,
+      fontFamily:"'Noto Sans KR', -apple-system, sans-serif",
+    }}>
+      {/* Header */}
+      <div className="mono" style={{fontSize: 10, letterSpacing: 2.5,
+        color: '#FFB060', fontWeight: 600}}>SAUNA · DESIGN SYSTEM</div>
+      <div style={{fontSize: 22, fontWeight: 800, marginTop: 4,
+        letterSpacing: -0.4}}>Icon set — 24-unit stroke</div>
+      <div style={{fontSize: 12, color:'rgba(255,220,180,0.6)', marginTop: 4,
+        lineHeight: 1.55}}>
+        전부 line-style SVG. 1.6px stroke · round cap/join · currentColor 상속.
+        이모지는 앱 어디에도 등장하지 않습니다.
+      </div>
+
+      {/* Color swatches */}
+      <div style={{marginTop: 20, display:'grid',
+        gridTemplateColumns:'repeat(5, 1fr)', gap: 10}}>
+        {[
+          {n:'heat-400', c:'#FFB060'},
+          {n:'heat-300', c:'#FFC870'},
+          {n:'heat-500', c:'#FF8A3B'},
+          {n:'wood',     c:'linear-gradient(135deg, #C08A55, #8a3e14)'},
+          {n:'deep',     c:'#0f0602'},
+        ].map(s => (
+          <div key={s.n} style={{padding: 10, borderRadius: 8,
+            background:'rgba(20,8,2,0.6)',
+            border:'1px solid rgba(255,180,110,0.2)'}}>
+            <div style={{height: 36, borderRadius: 5, background: s.c,
+              border:'1px solid rgba(255,255,255,0.08)'}}/>
+            <div className="mono" style={{fontSize: 9, marginTop: 6,
+              color:'rgba(255,220,180,0.7)', letterSpacing: 0.5}}>{s.n}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Icon grid */}
+      <div style={{marginTop: 20, display:'grid',
+        gridTemplateColumns:'repeat(7, 1fr)', gap: 10}}>
+        {icons.map(({n, C, brand}) => (
+          <div key={n} style={{
+            padding: 14, borderRadius: 10,
+            background:'rgba(20,8,2,0.55)',
+            border:'1px solid rgba(255,180,110,0.2)',
+            display:'flex', flexDirection:'column', alignItems:'center',
+            gap: 8,
+          }}>
+            <div style={{color: brand ? '#FFB060' : cream}}>
+              <C size={28} color="currentColor"/>
+            </div>
+            <div className="mono" style={{fontSize: 9,
+              color:'rgba(255,220,180,0.6)',
+              letterSpacing: 0.4}}>{n}</div>
+          </div>
+        ))}
+        {/* AnonAvatar */}
+        <div style={{
+          padding: 10, borderRadius: 10,
+          background:'rgba(20,8,2,0.55)',
+          border:'1px solid rgba(255,180,110,0.2)',
+          display:'flex', flexDirection:'column', alignItems:'center',
+          gap: 8,
+        }}>
+          <AnonAvatar size={34} accent="#FFC870"/>
+          <div className="mono" style={{fontSize: 9,
+            color:'rgba(255,220,180,0.6)',
+            letterSpacing: 0.4}}>Avatar</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
