@@ -130,4 +130,4 @@ private struct SeasonRoomTeaser: View {
 
 #Preview("Morning") { JjimHome(timeOfDay: .morning).frame(width: 393, height: 852) }
 #Preview("Evening") { JjimHome(timeOfDay: .evening).frame(width: 393, height: 852) }
-#Preview("Night")   { JjimHome(timeOfDay: .night).frame(width: 393, height: 852) }
+#Preview("Night") { JjimHome(timeOfDay: .night).frame(width: 393, height: 852) }

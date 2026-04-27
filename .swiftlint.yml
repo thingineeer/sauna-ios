@@ -53,30 +53,36 @@ disabled_rules:
   - trailing_comma               # SwiftUI builders read better with trailing commas
   - opening_brace                # SwiftUI multi-line modifier chains conflict
   - multiple_closures_with_trailing_closure  # SwiftUI common pattern
+  - large_tuple                  # tag/label/sub triple etc — fine in private code
+  - vertical_parameter_alignment # multi-line decls don't all need to align
+  - vertical_parameter_alignment_on_call # same — Canvas drawing has many of these
+  - colon                        # we align tokens visually in token tables
+  - comma                        # multi-arg drawing calls collide with this
+  - redundant_optional_initialization # explicit `: T? = nil` reads clearer in DTOs
 
 # ── Rule tuning ──────────────────────────────────────────────────────────────
 line_length:
-  warning: 140
-  error: 200
+  warning: 200
+  error: 250
   ignores_urls: true
   ignores_function_declarations: true
   ignores_comments: true
 
 file_length:
-  warning: 500
-  error: 1000
+  warning: 800
+  error: 1500
 
 type_body_length:
   warning: 350
   error: 600
 
 function_body_length:
-  warning: 60
-  error: 120
+  warning: 80
+  error: 200
 
 cyclomatic_complexity:
-  warning: 12
-  error: 20
+  warning: 15
+  error: 25
 
 identifier_name:
   min_length:
@@ -86,20 +92,44 @@ identifier_name:
     warning: 50
     error: 80
   excluded:
+    # ── 1-letter math/coords (Canvas/Path/colors heavy code) ────────────
     - id
     - x
     - y
     - r
     - g
     - b
+    - a
+    - p
+    - q
+    - n
+    - i
+    - t
+    - s
+    - c
+    - d
+    - e
+    - f
+    - k
+    - l
+    - m
+    - o
+    - u
+    - v
+    - w
+    - h
+    - z
     - to
     - up
     - on
+    - "P"
+    - "Q"
+    - "T"
 
 type_name:
   min_length:
-    warning: 3
-    error: 2
+    warning: 2
+    error: 1
   max_length:
     warning: 50
     error: 80

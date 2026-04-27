@@ -71,6 +71,6 @@ public enum RisingPhysics {
 
     /// Slight grow as it rises.
     public static func scale(progress t: Double) -> Double {
-        return 0.9 + t * 0.15
+        0.9 + t * 0.15
     }
 }

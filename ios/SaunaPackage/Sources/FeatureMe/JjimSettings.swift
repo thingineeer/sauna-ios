@@ -7,13 +7,13 @@ import WebViewBridge
 @Observable
 @MainActor
 public final class SettingsViewModel {
-    public var roomPeakNotif:    Bool = true
-    public var quietHours:       String = "22:00 ~ 07:00"
-    public var vibrate:          Bool = true
-    public var alwaysDark:       Bool = true
-    public var reduceMotion:     Bool = false
-    public var fontSize:         String = "중간"
-    public var aboutSheetOpen:   Bool = false
+    public var roomPeakNotif: Bool = true
+    public var quietHours: String = "22:00 ~ 07:00"
+    public var vibrate: Bool = true
+    public var alwaysDark: Bool = true
+    public var reduceMotion: Bool = false
+    public var fontSize: String = "중간"
+    public var aboutSheetOpen: Bool = false
 
     public init() {}
 
@@ -39,10 +39,10 @@ public struct JjimSettings: View {
                         .padding(.top, 4)
 
                     SettingGroup(title: "알림") {
-                        SettingRow(icon: AnyView(IcBell(size: 18)),  label: "방 피크 알림",
+                        SettingRow(icon: AnyView(IcBell(size: 18)), label: "방 피크 알림",
                                     toggle: Binding(get: { vm.roomPeakNotif },
                                                       set: { vm.roomPeakNotif = $0 }))
-                        SettingRow(icon: AnyView(IcMoon(size: 18)),  label: "야간 모드",
+                        SettingRow(icon: AnyView(IcMoon(size: 18)), label: "야간 모드",
                                     value: vm.quietHours)
                         SettingRow(icon: AnyView(IcVibrate(size: 18)), label: "진동",
                                     toggle: Binding(get: { vm.vibrate },
@@ -52,17 +52,17 @@ public struct JjimSettings: View {
                     SettingGroup(title: "경험") {
                         SettingRow(icon: AnyView(IcContrast(size: 18)), label: "다크 모드",
                                     value: vm.alwaysDark ? "항상 켜짐" : "꺼짐")
-                        SettingRow(icon: AnyView(IcMotion(size: 18)),   label: "모션 줄이기",
+                        SettingRow(icon: AnyView(IcMotion(size: 18)), label: "모션 줄이기",
                                     toggle: Binding(get: { vm.reduceMotion },
                                                       set: { vm.reduceMotion = $0 }))
-                        SettingRow(icon: AnyView(IcType(size: 18)),     label: "폰트 크기",
+                        SettingRow(icon: AnyView(IcType(size: 18)), label: "폰트 크기",
                                     value: vm.fontSize, last: true)
                     }
 
                     SettingGroup(title: "계정") {
-                        SettingRow(icon: AnyView(IcTrash(size: 18)),  label: "데이터 삭제",
+                        SettingRow(icon: AnyView(IcTrash(size: 18)), label: "데이터 삭제",
                                     value: "기록 없음", muted: true)
-                        SettingRow(icon: AnyView(IcInfo(size: 18)),   label: "Sauna란?",
+                        SettingRow(icon: AnyView(IcInfo(size: 18)), label: "Sauna란?",
                                     value: "v 0.1", last: true,
                                     onTap: { vm.aboutSheetOpen = true })
                     }
@@ -75,6 +75,7 @@ public struct JjimSettings: View {
                                       set: { vm.aboutSheetOpen = $0 })) {
             // WebKit-only sheet for the About page
             #if canImport(WebKit) && canImport(UIKit)
+            // swiftlint:disable:next force_unwrapping
             SaunaWebView(url: URL(string: "https://sauna.app/about")!)
                 .ignoresSafeArea()
             #else
@@ -122,7 +123,7 @@ struct SettingRow: View {
     var value: String?
     var muted: Bool = false
     var last: Bool = false
-    var onTap: (() -> Void)? = nil
+    var onTap: (() -> Void)?
 
     var body: some View {
         Button(action: { onTap?() }) {

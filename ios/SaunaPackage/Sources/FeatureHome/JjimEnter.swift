@@ -32,9 +32,12 @@ public struct JjimEnter: View {
                     )
                     .fill(
                         RadialGradient(
-                            colors: [JJIM.Clay.bright, JJIM.Accent.primary,
-                                      JJIM.Accent.deepEnd,
-                                      Color(red: 0.353, green: 0.125, blue: 0.063)],
+                            colors: [
+                                JJIM.Clay.bright,
+                                JJIM.Accent.primary,
+                                JJIM.Accent.deepEnd,
+                                Color(red: 0.353, green: 0.125, blue: 0.063),
+                            ],
                             center: UnitPoint(x: 0.5, y: 0.65),
                             startRadius: 0, endRadius: 100
                         )

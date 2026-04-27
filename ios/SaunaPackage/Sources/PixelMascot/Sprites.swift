@@ -14,16 +14,19 @@ public enum Sprites16 {
     /// Lookup helper. Falls back to `idle_warm` on unknown combos.
     public static func grid(pose: MascotPose, tone: MascotTone) -> [String] {
         let key = "\(pose.rawValue)_\(tone.rawValue)"
+        // `idle_warm` is provided in the bank below — force-unwrap is safe and
+        // a missing entry would be a programmer error worth a crash in debug.
+        // swiftlint:disable:next force_unwrapping
         return store[key] ?? store["idle_warm"]!
     }
 
     private static let store: [String: [String]] = [
-        "idle_warm":  idleWarm,
-        "doze_warm":  dozeWarm,
-        "peek_warm":  peekWarm,
-        "soak_cool":  soakCool,
+        "idle_warm": idleWarm,
+        "doze_warm": dozeWarm,
+        "peek_warm": peekWarm,
+        "soak_cool": soakCool,
         "drink_warm": drinkWarm,
-        "eat_warm":   eatWarm,
+        "eat_warm": eatWarm,
         "sweat_warm": sweatWarm,
     ]
 

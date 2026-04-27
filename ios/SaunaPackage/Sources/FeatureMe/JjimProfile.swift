@@ -72,9 +72,13 @@ public struct JjimProfile: View {
                 .clipShape(RoundedRectangle(cornerRadius: JJIM.Radius.lg))
                 .padding(.top, 18)
 
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10),
-                                      GridItem(.flexible())],
-                            spacing: 10) {
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 10),
+                        GridItem(.flexible()),
+                    ],
+                    spacing: 10
+                ) {
                     StatCell(label: "오늘 세션", value: "\(sessionsToday)회")
                     StatCell(label: "오늘 앉은 시간", value: "\(minutesToday)분")
                     StatCell(label: "이번 주 세션", value: "\(sessionsThisWeek)회")
@@ -105,7 +109,7 @@ public struct JjimProfile: View {
 private struct StatCell: View {
     let label: String
     let value: String
-    var trailingIcon: AnyView? = nil
+    var trailingIcon: AnyView?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {

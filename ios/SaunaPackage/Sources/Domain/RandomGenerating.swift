@@ -36,6 +36,7 @@ public final class StubRandomGenerator: RandomGenerating, @unchecked Sendable {
         return min(max(v, range.lowerBound), range.upperBound)
     }
     public func index(of count: Int) -> Int {
+        // swiftlint:disable:next empty_count
         guard count > 0 else { return 0 }
         guard !ints.isEmpty else { return 0 }
         let v = ints.removeFirst()

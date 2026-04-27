@@ -14,7 +14,7 @@ public struct RootView: View {
     @State private var phase: AppPhase
     @State private var onboarding = OnboardingFlowViewModel()
     @State private var activeTab: JjimTab = .home
-    @State private var openRoom: Domain.Room.Kind? = nil
+    @State private var openRoom: Domain.Room.Kind?
 
     public enum AppPhase { case onboarding, main }
 

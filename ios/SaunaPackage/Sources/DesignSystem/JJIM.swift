@@ -35,7 +35,7 @@ public enum JJIM {
     public enum Surface {
         public static let panel          = Color(red: 0.157, green: 0.059, blue: 0.020).opacity(0.72)
         public static let panelStrong    = Color(red: 0.157, green: 0.059, blue: 0.020).opacity(0.88)
-        public static let panelLight    = Color(red: 0.157, green: 0.059, blue: 0.020).opacity(0.45)
+        public static let panelLight = Color(red: 0.157, green: 0.059, blue: 0.020).opacity(0.45)
         public static let hairline       = Color(red: 1.000, green: 0.706, blue: 0.471).opacity(0.28)
         public static let hairlineStrong = Color(red: 1.000, green: 0.706, blue: 0.471).opacity(0.42)
     }

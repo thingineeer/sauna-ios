@@ -12,25 +12,25 @@ public enum TimeOfDay: String, CaseIterable, Sendable {
             return .init(
                 clock: "09:41",
                 nickname: "상쾌한수달",
-                daily: .init(head: 48, trend: 5,  density: "한산 · 숨고를만한 리듬"),
+                daily: .init(head: 48, trend: 5, density: "한산 · 숨고를만한 리듬"),
                 stock: .init(head: 322, trend: 28, density: "장 시작 · 벌써 꽉 참"),
-                job:   .init(head: 12, trend: -2, density: "적막 · 혼자 땀 흘리기 좋음")
+                job: .init(head: 12, trend: -2, density: "적막 · 혼자 땀 흘리기 좋음")
             )
         case .evening:
             return .init(
                 clock: "18:47",
                 nickname: "노곤한사슴",
-                daily: .init(head: 142, trend: 16,  density: "붐빔 · 퇴근 피크"),
-                stock: .init(head: 88,  trend: -12, density: "장 마감 후 정리"),
-                job:   .init(head: 67,  trend: 4,   density: "편안 · 자소서 얘기 많음")
+                daily: .init(head: 142, trend: 16, density: "붐빔 · 퇴근 피크"),
+                stock: .init(head: 88, trend: -12, density: "장 마감 후 정리"),
+                job: .init(head: 67, trend: 4, density: "편안 · 자소서 얘기 많음")
             )
         case .night:
             return .init(
                 clock: "03:28",
                 nickname: "깨어있는여우",
-                daily: .init(head: 8,  trend: -3, density: "적막 · 불면의 밤"),
-                stock: .init(head: 3,  trend: 0,  density: "한두명 · 뉴욕장 구경"),
-                job:   .init(head: 24, trend: 2,  density: "새벽조 · 발표 대기")
+                daily: .init(head: 8, trend: -3, density: "적막 · 불면의 밤"),
+                stock: .init(head: 3, trend: 0, density: "한두명 · 뉴욕장 구경"),
+                job: .init(head: 24, trend: 2, density: "새벽조 · 발표 대기")
             )
         }
     }
@@ -57,7 +57,7 @@ public struct HomeSnapshot: Equatable, Sendable {
     public let nickname: String
     public let daily: RoomData
     public let stock: RoomData
-    public let job:   RoomData
+    public let job: RoomData
 
     public init(clock: String, nickname: String,
                  daily: RoomData, stock: RoomData, job: RoomData) {

@@ -10,9 +10,9 @@ public struct JjimPasskey1: View {
     }
 
     private let benefits: [(String, String)] = [
-        ("비밀번호 없음",  "외울 게 없어"),
+        ("비밀번호 없음", "외울 게 없어"),
         ("해킹 피싱 안전", "너 폰 안의 보안칩에서 처리"),
-        ("1초 로그인",    "얼굴/지문만"),
+        ("1초 로그인", "얼굴/지문만"),
     ]
 
     public var body: some View {

@@ -6,11 +6,11 @@ import SharedUI
 @Observable
 @MainActor
 public final class NotifPrefsViewModel {
-    public var dailyPeak:    Bool = true
-    public var stockPeak:    Bool = true
-    public var jobPeak:      Bool = false
-    public var cooldown:     String = "최소 2시간"
-    public var quietHours:   String = "22:00 ~ 07:00"
+    public var dailyPeak: Bool = true
+    public var stockPeak: Bool = true
+    public var jobPeak: Bool = false
+    public var cooldown: String = "최소 2시간"
+    public var quietHours: String = "22:00 ~ 07:00"
     public init() {}
 }
 

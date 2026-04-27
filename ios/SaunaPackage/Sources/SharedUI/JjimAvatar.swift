@@ -18,7 +18,7 @@ public struct JjimAvatar: View {
 
             Canvas { ctx, sz in
                 let scale = size * 0.5 / 24
-                let originX = (sz.width  - 24 * scale) / 2
+                let originX = (sz.width - 24 * scale) / 2
                 let originY = (sz.height - 24 * scale) / 2
                 func P(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
                     .init(x: originX + x * scale, y: originY + y * scale)

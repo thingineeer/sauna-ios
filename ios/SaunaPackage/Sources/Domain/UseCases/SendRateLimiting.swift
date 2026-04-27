@@ -15,7 +15,7 @@ public final class SlidingWindowRateLimiter: SendRateLimiting, @unchecked Sendab
 
     public init(maxBurst: Int = 2, window: TimeInterval = 1.0) {
         precondition(maxBurst >= 1, "maxBurst must be >= 1")
-        precondition(window > 0,    "window must be positive")
+        precondition(window > 0, "window must be positive")
         self.maxBurst = maxBurst
         self.window = window
     }

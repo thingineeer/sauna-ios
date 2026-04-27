@@ -10,25 +10,25 @@ public struct IcSaunaMark: View {
             let s = size / 48
             let stroke = StrokeStyle(lineWidth: 2.2 * s, lineCap: .round, lineJoin: .round)
             // enclosure
-            let rect = Path(roundedRect: CGRect(x: 7*s, y: 9*s, width: 34*s, height: 30*s), cornerRadius: 4*s)
+            let rect = Path(roundedRect: CGRect(x: 7 * s, y: 9 * s, width: 34 * s, height: 30 * s), cornerRadius: 4 * s)
             ctx.stroke(rect, with: .color(.primary), style: stroke)
             // benches
             let stroke2 = StrokeStyle(lineWidth: 2 * s, lineCap: .round, lineJoin: .round)
-            var bench1 = Path(); bench1.move(to: CGPoint(x: 11*s, y: 31*s)); bench1.addLine(to: CGPoint(x: 37*s, y: 31*s))
+            var bench1 = Path(); bench1.move(to: CGPoint(x: 11 * s, y: 31 * s)); bench1.addLine(to: CGPoint(x: 37 * s, y: 31 * s))
             ctx.stroke(bench1, with: .color(.primary), style: stroke2)
-            var bench2 = Path(); bench2.move(to: CGPoint(x: 14*s, y: 35*s)); bench2.addLine(to: CGPoint(x: 34*s, y: 35*s))
+            var bench2 = Path(); bench2.move(to: CGPoint(x: 14 * s, y: 35 * s)); bench2.addLine(to: CGPoint(x: 34 * s, y: 35 * s))
             ctx.stroke(bench2, with: .color(.primary), style: stroke2)
             // heat waves: M16 22 c0-2 2-2 2-4s-2-2-2-4
             let stroke3 = StrokeStyle(lineWidth: 1.8 * s, lineCap: .round, lineJoin: .round)
             for x: CGFloat in [16, 24, 32] {
                 var w = Path()
-                w.move(to: CGPoint(x: x*s, y: 22*s))
-                w.addCurve(to: CGPoint(x: (x+2)*s, y: 18*s),
-                            control1: CGPoint(x: x*s, y: 20*s),
-                            control2: CGPoint(x: (x+2)*s, y: 20*s))
-                w.addCurve(to: CGPoint(x: x*s, y: 14*s),
-                            control1: CGPoint(x: (x+2)*s, y: 16*s),
-                            control2: CGPoint(x: x*s, y: 16*s))
+                w.move(to: CGPoint(x: x * s, y: 22 * s))
+                w.addCurve(to: CGPoint(x: (x + 2) * s, y: 18 * s),
+                            control1: CGPoint(x: x * s, y: 20 * s),
+                            control2: CGPoint(x: (x + 2) * s, y: 20 * s))
+                w.addCurve(to: CGPoint(x: x * s, y: 14 * s),
+                            control1: CGPoint(x: (x + 2) * s, y: 16 * s),
+                            control2: CGPoint(x: x * s, y: 16 * s))
                 ctx.stroke(w, with: .color(.primary), style: stroke3)
             }
         }
@@ -46,9 +46,9 @@ public struct IcDaily: View {
         SIcon(size: size) {
             Canvas { ctx, _ in
                 let style = StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .round)
-                ctx.stroke(Path(ellipseIn: CGRect(x: 4,    y: 16, width: 16, height: 5)),  with: .color(.primary), style: style)
-                ctx.stroke(Path(ellipseIn: CGRect(x: 5,    y: 10.8, width: 12, height: 4.4)), with: .color(.primary), style: style)
-                ctx.stroke(Path(ellipseIn: CGRect(x: 9,    y: 6,  width: 8,  height: 4)),  with: .color(.primary), style: style)
+                ctx.stroke(Path(ellipseIn: CGRect(x: 4, y: 16, width: 16, height: 5)), with: .color(.primary), style: style)
+                ctx.stroke(Path(ellipseIn: CGRect(x: 5, y: 10.8, width: 12, height: 4.4)), with: .color(.primary), style: style)
+                ctx.stroke(Path(ellipseIn: CGRect(x: 9, y: 6, width: 8, height: 4)), with: .color(.primary), style: style)
             }
         }
     }
@@ -63,7 +63,7 @@ public struct IcStock: View {
                 let style = StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .round)
                 // Left candle
                 var l1 = Path(); l1.move(to: CGPoint(x: 7, y: 4));  l1.addLine(to: CGPoint(x: 7, y: 20));  ctx.stroke(l1, with: .color(.primary), style: style)
-                ctx.stroke(Path(roundedRect: CGRect(x: 4.5, y: 8,  width: 5, height: 8), cornerRadius: 0.5), with: .color(.primary), style: style)
+                ctx.stroke(Path(roundedRect: CGRect(x: 4.5, y: 8, width: 5, height: 8), cornerRadius: 0.5), with: .color(.primary), style: style)
                 // Right candle
                 var l2 = Path(); l2.move(to: CGPoint(x: 17, y: 5)); l2.addLine(to: CGPoint(x: 17, y: 19)); ctx.stroke(l2, with: .color(.primary), style: style)
                 ctx.stroke(Path(roundedRect: CGRect(x: 14.5, y: 10, width: 5, height: 6), cornerRadius: 0.5), with: .color(.primary), style: style)
@@ -118,15 +118,15 @@ public struct IcWorldCup: View {
                 pent.addLine(to: CGPoint(x: 15, y: 10))
                 pent.addLine(to: CGPoint(x: 14, y: 14))
                 pent.addLine(to: CGPoint(x: 10, y: 14))
-                pent.addLine(to: CGPoint(x: 9,  y: 10))
+                pent.addLine(to: CGPoint(x: 9, y: 10))
                 pent.closeSubpath()
                 ctx.stroke(pent, with: .color(.primary), style: style)
                 let segs: [(CGPoint, CGPoint)] = [
-                    (.init(x:12,y:4), .init(x:12,y:8)),
-                    (.init(x:15,y:10),.init(x:19,y:9)),
-                    (.init(x:14,y:14),.init(x:17,y:17)),
-                    (.init(x:10,y:14),.init(x:7, y:17)),
-                    (.init(x:9, y:10),.init(x:5, y:9)),
+                    (.init(x: 12, y: 4), .init(x: 12, y: 8)),
+                    (.init(x: 15, y: 10), .init(x: 19, y: 9)),
+                    (.init(x: 14, y: 14), .init(x: 17, y: 17)),
+                    (.init(x: 10, y: 14), .init(x: 7, y: 17)),
+                    (.init(x: 9, y: 10), .init(x: 5, y: 9)),
                 ]
                 for (a, b) in segs {
                     var s = Path(); s.move(to: a); s.addLine(to: b); ctx.stroke(s, with: .color(.primary), style: style)
@@ -178,7 +178,7 @@ public struct IcSteam: View {
                 p2.move(to: CGPoint(x: 12, y: 21))
                 p2.addCurve(to: CGPoint(x: 14, y: 17), control1: CGPoint(x: 12, y: 19), control2: CGPoint(x: 14, y: 19))
                 p2.addCurve(to: CGPoint(x: 12, y: 13), control1: CGPoint(x: 14, y: 15), control2: CGPoint(x: 12, y: 15))
-                p2.addCurve(to: CGPoint(x: 14, y: 9),  control1: CGPoint(x: 12, y: 11), control2: CGPoint(x: 14, y: 11))
+                p2.addCurve(to: CGPoint(x: 14, y: 9), control1: CGPoint(x: 12, y: 11), control2: CGPoint(x: 14, y: 11))
                 ctx.stroke(p2, with: .color(.primary), style: style)
                 // R: M17 19 ...
                 var p3 = Path()
@@ -201,7 +201,7 @@ public struct IcWaves: View {
                 for y in [CGFloat(8), 14, 20] {
                     var p = Path()
                     p.move(to: CGPoint(x: 3, y: y))
-                    p.addQuadCurve(to: CGPoint(x: 9, y: y),  control: CGPoint(x: 6,  y: y - 2))
+                    p.addQuadCurve(to: CGPoint(x: 9, y: y), control: CGPoint(x: 6, y: y - 2))
                     p.addQuadCurve(to: CGPoint(x: 15, y: y), control: CGPoint(x: 12, y: y + 2))
                     p.addQuadCurve(to: CGPoint(x: 21, y: y), control: CGPoint(x: 18, y: y - 2))
                     ctx.stroke(p, with: .color(.primary), style: style)
@@ -285,9 +285,9 @@ public struct IcGear: View {
                 let style = StrokeStyle(lineWidth: 1.6, lineCap: .round, lineJoin: .round)
                 ctx.stroke(Path(ellipseIn: CGRect(x: 9, y: 9, width: 6, height: 6)), with: .color(.primary), style: style)
                 let segs: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
-                    (12, 2, 12, 5),  (12, 19, 12, 22),
+                    (12, 2, 12, 5), (12, 19, 12, 22),
                     (4.2, 4.2, 6.3, 6.3), (17.7, 17.7, 19.8, 19.8),
-                    (2, 12, 5, 12),  (19, 12, 22, 12),
+                    (2, 12, 5, 12), (19, 12, 22, 12),
                     (4.2, 19.8, 6.3, 17.7), (17.7, 6.3, 19.8, 4.2),
                 ]
                 for (x1, y1, x2, y2) in segs {
@@ -357,11 +357,11 @@ public struct IcDice: View {
                             with: .color(.primary), style: style)
                 let dots: [CGPoint] = [
                     .init(x: 8.5, y: 8.5), .init(x: 15.5, y: 8.5),
-                    .init(x: 12,  y: 12),
+                    .init(x: 12, y: 12),
                     .init(x: 8.5, y: 15.5), .init(x: 15.5, y: 15.5),
                 ]
                 for d in dots {
-                    ctx.fill(Path(ellipseIn: CGRect(x: d.x-1, y: d.y-1, width: 2, height: 2)), with: .color(.primary))
+                    ctx.fill(Path(ellipseIn: CGRect(x: d.x - 1, y: d.y - 1, width: 2, height: 2)), with: .color(.primary))
                 }
             }
         }
@@ -652,10 +652,10 @@ public struct AnonAvatar: View {
                 hood.addQuadCurve(to: P(6, 17), control: P(6, 19))
                 hood.closeSubpath()
                 ctx.stroke(hood, with: .color(accent), style: style)
-                ctx.fill(Path(ellipseIn: CGRect(x: P(10, 13).x - 0.7*s, y: P(10, 13).y - 0.7*s,
-                                                  width: 1.4*s, height: 1.4*s)), with: .color(accent))
-                ctx.fill(Path(ellipseIn: CGRect(x: P(14, 13).x - 0.7*s, y: P(14, 13).y - 0.7*s,
-                                                  width: 1.4*s, height: 1.4*s)), with: .color(accent))
+                ctx.fill(Path(ellipseIn: CGRect(x: P(10, 13).x - 0.7 * s, y: P(10, 13).y - 0.7 * s,
+                                                  width: 1.4 * s, height: 1.4 * s)), with: .color(accent))
+                ctx.fill(Path(ellipseIn: CGRect(x: P(14, 13).x - 0.7 * s, y: P(14, 13).y - 0.7 * s,
+                                                  width: 1.4 * s, height: 1.4 * s)), with: .color(accent))
             }
         }
         .frame(width: size, height: size)

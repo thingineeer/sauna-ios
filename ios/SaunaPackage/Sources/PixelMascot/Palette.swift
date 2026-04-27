@@ -4,7 +4,9 @@ import SwiftUI
 /// Mirrors `PIXEL_PALETTE` in `lib/pixel-mascot.jsx`.
 public enum PixelPalette {
     /// Returns the color for a single sprite character. `nil` = transparent.
-    public static func color(for ch: Character) -> Color? {
+    /// The big switch is intentional — a literal lookup table is what we want
+    /// here for clarity and zero allocation.
+    public static func color(for ch: Character) -> Color? {  // swiftlint:disable:this cyclomatic_complexity
         switch ch {
         case ".": return nil
         case "k": return Color(red: 0.102, green: 0.078, blue: 0.063)         // #1a1410 outline

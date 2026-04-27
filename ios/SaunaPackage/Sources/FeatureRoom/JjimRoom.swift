@@ -136,7 +136,7 @@ public struct JjimRoom: View {
         switch vm.roomId {
         case .daily: return ("SAUNA · DAILY", "일상 황토방", "하루 흘려보내기")
         case .stock: return ("SAUNA · STOCK", "주식 황토방", "장 식히기")
-        case .job:   return ("SAUNA · JOB",   "취준 황토방", "잠시 숨고르기")
+        case .job:   return ("SAUNA · JOB", "취준 황토방", "잠시 숨고르기")
         }
     }
 
@@ -315,7 +315,7 @@ private struct BubbleView: View {
 private struct SpawnDriver: View {
     let vm: RoomViewModel
     @State private var lastSpawn: Date = .distantPast
-    @State private var lastMine:  Date = .distantPast
+    @State private var lastMine: Date = .distantPast
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.2)) { context in
             Color.clear.onChange(of: context.date) { _, now in
@@ -339,10 +339,10 @@ private struct SpawnDriver: View {
 
 private struct KoreanKeyboardMock: View {
     private let rows: [[String]] = [
-        ["ㅂ","ㅈ","ㄷ","ㄱ","ㅅ","ㅛ","ㅕ","ㅑ","ㅐ","ㅔ"],
-        ["ㅁ","ㄴ","ㅇ","ㄹ","ㅎ","ㅗ","ㅓ","ㅏ","ㅣ"],
-        ["⇧","ㅋ","ㅌ","ㅊ","ㅍ","ㅠ","ㅜ","ㅡ","⌫"],
-        ["123","🌐","space","enter"],
+        ["ㅂ", "ㅈ", "ㄷ", "ㄱ", "ㅅ", "ㅛ", "ㅕ", "ㅑ", "ㅐ", "ㅔ"],
+        ["ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ"],
+        ["⇧", "ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ", "⌫"],
+        ["123", "🌐", "space", "enter"],
     ]
 
     var body: some View {

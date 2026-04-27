@@ -48,13 +48,20 @@ public struct DefaultAssignDailyNicknameUseCase: AssignDailyNicknameUseCase {
 public enum NicknameKST {
     public static var calendar: Calendar {
         var c = Calendar(identifier: .gregorian)
+        // "Asia/Seoul" is a fixed identifier; the Foundation tz database always
+        // resolves it. Force-unwrap is safer than coercing to UTC silently.
+        // swiftlint:disable:next force_unwrapping
         c.timeZone = TimeZone(identifier: "Asia/Seoul")!
         return c
     }
 
     /// Midnight (start of the day) and next midnight in KST for `instant`.
+    /// `Calendar.date(byAdding:.day, value: 1)` only fails on absurd dates (e.g.
+    /// `Date.distantFuture`); for any real `Date()` it always returns a value,
+    /// so we deliberately force-unwrap.
     public static func dayBounds(of instant: Date, calendar: Calendar = calendar) -> (start: Date, end: Date) {
         let start = calendar.startOfDay(for: instant)
+        // swiftlint:disable:next force_unwrapping
         let end = calendar.date(byAdding: .day, value: 1, to: start)!
         return (start, end)
     }
