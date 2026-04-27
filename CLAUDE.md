@@ -7,14 +7,22 @@
 
 황토방(찜질방) 톤의 익명 실시간 채팅 앱. 방 3개 고정(일상/주식/취준), 닉네임 매일 자정 새로, 메시지는 증기처럼 사라짐. iOS 17+ 네이티브, 일부 비실시간 페이지는 WKWebView.
 
-## 현재 단계
+## 현재 단계 (2026-04-28)
 
-**v3 디자인(Jjimjilbang Flow) 확정 → 구현 진행 중.**
+**iOS Phase 1 완료 + Phase 2 wiring 준비.**
 
-- 디자인 정본: `design-handoff/v3-jjimjilbang/Jjimjilbang Flow.html`
-- 기술 스택 확정: `docs/tech-stack-final.md` (이 파일이 최종)
-- iOS SPM 패키지 + 서버(Vapor) + 인프라(AWS Seoul) 모노레포 구조
-- 설계 완료, 코드 진행
+- ✅ 디자인 정본 v3 (Jjimjilbang Flow) — 17개 화면 모두 SwiftUI 로 구현
+- ✅ 기술 스택 확정 (`docs/tech-stack-final.md`)
+- ✅ iOS SPM 패키지 — 14 모듈 + 9 테스트 타겟, 모두 컴파일
+- ✅ TDD: Domain UseCases + RisingPhysics + RoomViewModel + KeychainNicknameStore
+  - **65 tests pass · 0 failures · 0 SwiftLint violations**
+- ✅ NetworkCore: Endpoint + URLSessionNetworkClient + URLSessionWebSocketClient (Swift 6 actor)
+- ✅ Data: KeychainNicknameStore (Live + InMemory) + RemoteRoomRepository
+- ✅ WebViewBridge: SaunaWebView (WKWebView origin 화이트리스트 + popup 차단)
+- ✅ 인프라: docker-compose (Redis + Postgres) + Terraform skeleton
+- ✅ CI/CD: GitHub Actions (iOS / server / lint-pr) + .swiftlint.yml + CODEOWNERS + PR 템플릿
+- ⏳ 서버 (Vapor): 별도 worktree 작업 진행 중 (`feature/server-scaffold`)
+- ⏳ 다음: Xcode 앱 타겟 생성 + 실제 Passkey 연결 + TestFlight
 
 ## 먼저 읽어야 할 파일 (순서 중요)
 
