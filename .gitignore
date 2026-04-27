@@ -65,3 +65,12 @@ GoogleService-Info.plist
 # Node (design handoff에 섞일 수 있어서)
 node_modules/
 npm-debug.log*
+
+# Claude Code subagent worktrees (절대 트래킹 X — 별도 브랜치)
+.claude/worktrees/
+
+# Terraform local state
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/.terraform.lock.hcl
