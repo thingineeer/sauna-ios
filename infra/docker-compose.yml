@@ -1,0 +1,69 @@
+# Sauna · 로컬 개발용 인프라
+#
+# - Redis 7: Pub/Sub + presence (휘발성)
+# - Postgres 16: Passkey 자격증명 (영속)
+#
+# 사용:
+#   cp .env.example .env       # 필요 시 비밀번호 변경
+#   docker compose up -d
+#   docker compose ps
+#   docker compose down
+
+name: sauna-local
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: sauna-redis
+    restart: unless-stopped
+    # 메시지는 휘발이 본질이므로 RDB/AOF 끔. presence/Pub-Sub만 사용.
+    command: >
+      redis-server
+      --appendonly no
+      --save ""
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    networks:
+      - sauna_local
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sauna-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sauna_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-sauna}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev}
+      # 한국 리전·KST 정책 일관성
+      TZ: Asia/Seoul
+      PGTZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    networks:
+      - sauna_local
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sauna} -d ${POSTGRES_DB:-sauna_dev}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+networks:
+  sauna_local:
+    name: sauna_local
+    driver: bridge
+
+volumes:
+  pg_data:
+    name: sauna_pg_data
