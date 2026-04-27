@@ -84,6 +84,10 @@ cyclomatic_complexity:
   warning: 15
   error: 25
 
+function_parameter_count:
+  warning: 7
+  error: 10
+
 identifier_name:
   min_length:
     warning: 2
