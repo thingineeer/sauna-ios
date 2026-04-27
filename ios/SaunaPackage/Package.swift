@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "SaunaPackage",
     defaultLocalization: "ko",
-    platforms: [.iOS(.v17)],
+    platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(name: "SaunaApp",          targets: ["SaunaApp"]),
         .library(name: "Domain",            targets: ["Domain"]),

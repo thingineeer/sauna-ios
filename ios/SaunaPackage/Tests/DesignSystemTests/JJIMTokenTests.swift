@@ -34,6 +34,9 @@ final class JJIMTokenTests: XCTestCase {
     }
 
     // MARK: - helpers
+    /// Cross-platform RGB resolver.
+    /// On iOS we go through UIColor (gives device-RGB). On macOS we go through
+    /// `Color.Resolved` (iOS 17 / macOS 14+) which yields sRGB linear floats.
     private static func rgb(of color: Color) throws -> (Double, Double, Double) {
         #if canImport(UIKit)
         let ui = UIColor(color)
@@ -43,7 +46,9 @@ final class JJIMTokenTests: XCTestCase {
         }
         return (Double(r), Double(g), Double(b))
         #else
-        throw NSError(domain: "noUIKit", code: -1)
+        let env = EnvironmentValues()
+        let resolved = color.resolve(in: env)
+        return (Double(resolved.red), Double(resolved.green), Double(resolved.blue))
         #endif
     }
 }
