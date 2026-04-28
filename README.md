@@ -11,16 +11,16 @@
 
 - [x] PM/디자인 v3 황토방 톤 확정 (`design-handoff/v3-jjimjilbang/`)
 - [x] 기술 스택 확정 (`docs/tech-stack-final.md`)
-- [x] iOS 모듈화 + DesignSystem + Domain (TDD) + 17개 화면 모두 구현
-- [x] CI/CD GitHub Actions
+- [x] iOS 모듈화 — **Tuist Modular Architecture(TMA) 14 Project** + DesignSystem + Domain (TDD) + 17개 화면 구현
+- [x] CI/CD GitHub Actions (Tuist 기반 build/test + tag→TestFlight)
 - [x] 인프라 docker-compose + Terraform 스켈레톤
-- [ ] 서버 (Vapor) 스캐폴딩 (작업 중)
-- [ ] iOS 앱 타겟 (`Sauna.xcodeproj`) — Xcode UI에서 한 번 생성 필요
-- [ ] Phase 2: WebSocket 연결 + Passkey end-to-end
+- [x] Vapor 서버 Phase 2 wireup (Postgres/Redis/Passkey)
+- [ ] Phase 3: WebAuthn 라이브러리 통합 + 운영 도메인/인프라
 
 ```
-swift test (ios/SaunaPackage)  →  55건 pass / 0 fail
-swiftlint --strict             →  0 violations / 61 files
+make test (ios)            →  67건 pass / 0 fail (8 schemes)
+swift test server          →  18건 pass / 0 fail
+swiftlint --strict         →  0 violations / 204 files
 ```
 
 ## 레포 구조
@@ -43,32 +43,31 @@ sauna-ios/                         ← 모노레포 루트 (이름은 추후 sau
 │   │   ├── lib/                   ← React 레퍼런스
 │   │   └── ...
 │   └── (v2 메이플 잔존 — 참고만)
-├── ios/
-│   └── SaunaPackage/              ← SPM 멀티 타겟 패키지
-│       ├── Package.swift
-│       ├── Sources/
-│       │   ├── SaunaApp/          ← Composition Root
-│       │   ├── Domain/             ← UseCases (TDD) + Entities
-│       │   ├── DomainInterfaces/
-│       │   ├── Data/
-│       │   ├── NetworkCore/
-│       │   ├── DesignSystem/       ← JJIM 토큰 + Gradient + Pattern
-│       │   ├── CustomIcons/        ← 24개 아이콘 (SwiftUI Path)
-│       │   ├── PixelMascot/        ← 콩이 (16x16/32x32 픽셀 렌더러)
-│       │   ├── SharedUI/           ← ClayWall, ClayLamp, RoomCard, TabBar...
-│       │   ├── WebViewBridge/      ← WKWebView 약관/About용
-│       │   ├── FeatureOnboarding/  ← Splash + Onboard 1/2/3 + Passkey 1/2/3
-│       │   ├── FeatureHome/        ← morning/evening/night + Enter
-│       │   ├── FeatureRoom/        ← rise 애니 + density + 키보드
-│       │   └── FeatureMe/          ← Profile + Settings + NotifPrefs
-│       └── Tests/
-│           ├── DomainTests/        ← UseCase TDD (90%+)
-│           ├── DesignSystemTests/  ← 토큰 회귀
-│           ├── PixelMascotTests/   ← 스프라이트 무결성
-│           ├── FeatureOnboardingTests/
-│           ├── FeatureHomeTests/
-│           ├── FeatureRoomTests/   ← rise physics + ViewModel
-│           └── FeatureMeTests/
+├── ios/                            ← Tuist Modular Architecture (TMA)
+│   ├── Tuist.swift                 ← 글로벌 Tuist 설정
+│   ├── Workspace.swift             ← 14 Project 워크스페이스
+│   ├── Tuist/
+│   │   ├── Package.swift            ← 외부 SPM (Sentry 등)
+│   │   └── ProjectDescriptionHelpers/  ← SaunaConstants + library/feature 헬퍼
+│   ├── Projects/
+│   │   ├── App/Sauna/               ← Composition Root + xcconfig + entitlements
+│   │   ├── Domain/                  ← Interface / Sources(UseCase) / Testing(Stub) / Tests
+│   │   ├── Data/                    ← KeychainNicknameStore + Remote Repo + Passkey Auth
+│   │   ├── Core/
+│   │   │   ├── DesignSystem/        ← JJIM 토큰 + Gradient + Pattern
+│   │   │   ├── CustomIcons/         ← 24개 아이콘 (SwiftUI Path)
+│   │   │   ├── PixelMascot/         ← 콩이 (16x16/32x32 픽셀 렌더러)
+│   │   │   ├── SharedUI/            ← ClayWall, RoomCard, TabBar, ...
+│   │   │   ├── NetworkCore/         ← Endpoint + URLSession + WebSocket
+│   │   │   ├── Observability/       ← Sentry-Cocoa wrapper + 휘발성 가드
+│   │   │   └── WebViewBridge/       ← WKWebView 약관/About용
+│   │   └── Features/
+│   │       ├── Onboarding/          ← Splash + Onboard 1/2/3 + Passkey 1/2/3
+│   │       ├── Home/                ← morning/evening/night + Enter
+│   │       ├── Room/                ← rise 애니 + density + 키보드
+│   │       └── Me/                  ← Profile + Settings + NotifPrefs
+│   ├── Makefile                    ← tuist install/generate/build/test/lint/triple-check
+│   └── fastlane/, Gemfile          ← TestFlight beta 업로드
 ├── server/                        ← Vapor 4 서버 (구축 중)
 ├── infra/
 │   ├── docker-compose.yml         ← 로컬 Redis + Postgres
@@ -94,16 +93,24 @@ sauna-ios/                         ← 모노레포 루트 (이름은 추후 sau
 
 ## 시작하기
 
-### iOS
+### iOS (Tuist)
 
 ```bash
-cd ios/SaunaPackage
-swift build
-swift test
+# 첫 setup
+brew install tuist               # 또는 mise use -g tuist@4.43.2
+cd ios
+make install                     # 외부 SPM (Sentry 등) 설치
+make generate                    # .xcworkspace + 14× .xcodeproj 생성
+
+# 일상 명령
+make build                       # Sauna 앱 Debug 빌드
+make test                        # 모든 모듈 단위 테스트
+make lint                        # SwiftLint --strict
+make triple-check                # build + test + lint
+make open                        # Xcode 에서 Sauna.xcworkspace 열기
 ```
 
-Xcode 16+ 에서 `Package.swift` 를 열면 미리보기 / 단위 테스트 가능.
-앱 타겟이 필요하면 별도 `Sauna.xcodeproj` 를 만들고 SPM로 `SaunaApp` 모듈을 의존하면 됨.
+Xcode 16+ 필요. **`.xcworkspace` 와 `.xcodeproj` 는 generate 마다 새로 만들어지므로 .gitignore.** 수정 대상은 `ios/Projects/<Layer>/<Name>/Project.swift` 와 소스 파일들.
 
 ### 로컬 인프라
 

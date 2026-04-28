@@ -5,44 +5,54 @@
 
 ## 한 줄
 
-**디자인 정본 v3 + iOS Phase 1 + Phase 2 wireup + 서버 Phase 2 wireup + Sentry + Xcode project + Fastlane TestFlight + tag→CI 까지 코드로 완료.** 외부 시크릿 / 도메인 등록만 남음.
+**디자인 정본 v3 + iOS Phase 1 + Phase 2 wireup + 서버 Phase 2 wireup + Sentry + Tuist TMA(토스/카카오뱅크 스타일) 전환 + Fastlane TestFlight + tag→CI 까지 코드로 완료.** 외부 시크릿 / 도메인 등록만 남음.
 
 ## 검증
 
 ```
-$ swift test --package-path ios/SaunaPackage
-Executed 72 tests, with 0 failures (0 unexpected) in 0.018 (0.024) seconds
+$ cd ios && make test
+[OK] Domain                   19 passed / 0 failed
+[OK] Data                     13 passed / 0 failed
+[OK] PixelMascot               5 passed / 0 failed
+[OK] Observability             3 passed / 0 failed
+[OK] FeatureOnboarding         6 passed / 0 failed
+[OK] FeatureHome               4 passed / 0 failed
+[OK] FeatureRoom              13 passed / 0 failed
+[OK] FeatureMe                 4 passed / 0 failed
+Total: 67 passed / 0 failed
 
 $ swift test --package-path server
 Executed 18 tests, with 0 failures (0 unexpected) in 0.236 (0.238) seconds
 
-$ swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources server/Sources
-Done linting! Found 0 violations, 0 serious in 170 files.
+$ swiftlint lint --strict --config .swiftlint.yml ios/Projects server/Sources
+Done linting! Found 0 violations, 0 serious in 204 files.
 ```
 
-**전체: 90 tests pass / 0 failures / 0 lint violations across 170 files.**
+**전체: 85 tests pass / 0 failures / 0 lint violations across 204 files.**
 
-## 모듈 (iOS 15 + server 1)
+## 모듈 (iOS Tuist TMA — 14 Project + server 1)
 
-### iOS SPM (`ios/SaunaPackage/`)
+### iOS Tuist TMA (`ios/Projects/`)
 
-| 모듈 | 상태 | 테스트 | 용도 |
+> 토스/카카오뱅크 패턴. Domain 은 4-target(Interface/Sources/Testing/Tests),
+> 다른 모듈은 항상 `DomainInterface` 만 import. Workspace 정의는 `ios/Workspace.swift`.
+
+| Layer | Project | 테스트 | 용도 |
 |---|---|---|---|
-| `Domain` | ✅ | 21건 | 순수 Swift entities + UseCases (TDD) |
-| `DomainInterfaces` | ✅ | — | RoomRepo / NicknameRepo / Authenticator 프로토콜 |
-| `NetworkCore` | ✅ | (DataTests) | Endpoint + URLSessionNetworkClient + WebSocketClient (actor) |
-| `Data` | ✅ | 11건 | KeychainNicknameStore + RemoteRoomRepository + PasskeyAuthenticator |
-| `DesignSystem` | ✅ | 4건 | JJIM 토큰 + Gradients + Pattern + Typography |
-| `CustomIcons` | ✅ | — | 24개 아이콘 (SwiftUI Path) |
-| `PixelMascot` | ✅ | 5건 | 콩이 16x16/32x32 + 24색 팔레트 |
-| `SharedUI` | ✅ | 1건 | ClayWall/Floor/Lamp/Button/Header/Avatar/RoomCard/TabBar/Pagination |
-| `WebViewBridge` | ✅ | — | SaunaWebView (origin 화이트리스트 + popup 차단) |
-| `Observability` | ✅ | 3건 | Sentry-Cocoa wrapper + 휘발성 정책 가드 |
-| `FeatureOnboarding` | ✅ | 6건 | Splash + Onboard 1/2/3 + Passkey 1/2/3 + 7-step VM |
-| `FeatureHome` | ✅ | 4건 | morning/evening/night + Enter |
-| `FeatureRoom` | ✅ | 13건 | rise 애니 + density + 키보드 |
-| `FeatureMe` | ✅ | 3건 | Profile + Settings (WKWebView 약관) + NotifPrefs |
-| `SaunaApp` | ✅ | 1건 | Composition Root (live/mock) + RootView 탭 네비 |
+| `App` | `Sauna` | (Smoke) | Composition Root + RootView 탭 네비 + AppHost @main + xcconfig + Info.plist |
+| `Domain` | `Domain` (4-target) | 19건 | Interface(엔티티+프로토콜) / Sources(UseCase) / Testing(Stub) / Tests |
+| `Data` | `Data` | 13건 | KeychainNicknameStore + RemoteRoomRepository + PasskeyAuthenticator |
+| `Core` | `NetworkCore` | (DataTests) | Endpoint + URLSessionNetworkClient + WebSocketClient (actor) |
+| `Core` | `DesignSystem` | — | JJIM 토큰 + Gradients + Pattern + Typography |
+| `Core` | `CustomIcons` | — | 24개 아이콘 (SwiftUI Path) |
+| `Core` | `PixelMascot` | 5건 | 콩이 16x16/32x32 + 24색 팔레트 |
+| `Core` | `SharedUI` | — | ClayWall/Floor/Lamp/Button/Header/Avatar/RoomCard/TabBar/Pagination |
+| `Core` | `WebViewBridge` | — | SaunaWebView (origin 화이트리스트 + popup 차단) |
+| `Core` | `Observability` | 3건 | Sentry-Cocoa wrapper + 휘발성 정책 가드 |
+| `Features` | `FeatureOnboarding` | 6건 | Splash + Onboard 1/2/3 + Passkey 1/2/3 + 7-step VM |
+| `Features` | `FeatureHome` | 4건 | morning/evening/night + Enter |
+| `Features` | `FeatureRoom` | 13건 | rise 애니 + density + 키보드 |
+| `Features` | `FeatureMe` | 4건 | Profile + Settings (WKWebView 약관) + NotifPrefs |
 
 ### Server (`server/`)
 
@@ -79,9 +89,9 @@ Done linting! Found 0 violations, 0 serious in 170 files.
 | Sentry SDK + 휘발성 정책 | ✅ |
 | Vapor Postgres 풀 + ensureSchema + PasskeyStore 실 SQL | ✅ |
 | PasskeyController challenge generation (SecRandom) | ✅ |
-| Xcode project 생성기 (xcodegen) | ✅ project.yml |
+| Xcode project 생성기 — **Tuist 4.43.2 + TMA(14 Project)** | ✅ |
 | Fastlane TestFlight 템플릿 | ✅ |
-| GitHub Actions tag→TestFlight 잡 | ✅ |
+| GitHub Actions tag→TestFlight 잡 (Tuist 기반) | ✅ |
 
 ## 남은 외부 작업 (코드 외 — 시크릿/계정/도메인)
 
@@ -100,20 +110,26 @@ Done linting! Found 0 violations, 0 serious in 170 files.
 ## 시작 가이드
 
 ```bash
-# 1) iOS SPM 빌드/테스트 (Xcode 안 열고도 가능)
-cd ios && make triple-check        # build + test + lint
+# 0) Tuist 설치 (한 번만)
+brew install tuist          # 또는 mise use -g tuist@4.43.2
 
-# 2) Xcode 프로젝트 생성 (xcodegen 필요)
-brew install xcodegen
-make xcode
+# 1) 외부 SPM 받아오기 + 워크스페이스 생성
+cd ios && make install      # Sentry 등 외부 dep
+cd ios && make generate     # .xcworkspace + 14× .xcodeproj 생성
 
-# 3) 로컬 인프라 (Redis + Postgres)
-cd ../infra && make local-up
+# 2) iOS 빌드/테스트/lint (Xcode 안 열고도 가능)
+cd ios && make triple-check # build + test(67건) + lint
 
-# 4) 서버 로컬 실행
-cd ../server && swift run SaunaServer
+# 3) Xcode 에서 열기
+cd ios && make open         # Sauna.xcworkspace 열림
+
+# 4) 로컬 인프라 (Redis + Postgres)
+cd infra && make local-up
+
+# 5) 서버 로컬 실행
+cd server && swift run SaunaServer
 # (DATABASE_URL 미설정이면 InMemoryPasskeyStore 폴백)
 
-# 5) 첫 TestFlight 빌드 (시크릿 입력 후)
-cd ../ios && bundle install && bundle exec fastlane beta
+# 6) 첫 TestFlight 빌드 (시크릿 입력 후)
+cd ios && bundle install && make beta
 ```

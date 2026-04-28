@@ -9,20 +9,20 @@
 
 ## 현재 단계 (2026-04-28)
 
-**iOS + 서버 Phase 2 wireup 코드 완료. 외부 시크릿 / 도메인 등록만 남음.**
+**iOS + 서버 Phase 2 wireup 코드 완료. SPM → Tuist Modular Architecture(TMA) 전환 완료. 외부 시크릿 / 도메인 등록만 남음.**
 
 - ✅ 디자인 정본 v3 (Jjimjilbang Flow) — 17 화면 모두 SwiftUI 구현
 - ✅ 기술 스택 확정 (`docs/tech-stack-final.md`)
-- ✅ iOS SPM 패키지 — 15 모듈 (Observability 추가) + 10 테스트 타겟
-- ✅ **TDD 합계: iOS 72 + server 18 = 90 tests · 0 fail · 0 SwiftLint violations / 170 files**
+- ✅ **iOS Tuist TMA — 14 Project (App·Domain·Data·Core×7·Features×4)**, Domain 은 Interface/Sources/Testing/Tests 4 target
+- ✅ **TDD 합계: iOS 67 + server 18 = 85 tests · 0 fail · 0 SwiftLint violations / 204 files**
 - ✅ AppContainer.live() — KeychainNicknameStore + RemoteRoomRepository + PasskeyAuthenticator 실 wireup
 - ✅ Apple Passkey 어댑터 (ASAuthorizationPlatformPublicKeyCredentialProvider)
 - ✅ Sentry-Cocoa 8.x — 휘발성 정책 가드 (chat.message breadcrumb drop, headers 마스킹)
 - ✅ Vapor 서버: Postgres 풀 + ensureSchema + PostgresPasskeyStore 실 SQL + InMemoryPasskeyStore 폴백
 - ✅ PasskeyController: SecRandomCopyBytes 32-byte challenge + ChallengeStore actor + 5분 TTL
 - ✅ 인프라: docker-compose (Redis + Postgres) + Terraform skeleton
-- ✅ CI/CD: GitHub Actions (iOS build/test, server, lint-pr) + tag→TestFlight 잡
-- ✅ Xcode project 자동 생성: `ios/project.yml` (xcodegen) + `ios/Makefile` + Fastlane
+- ✅ CI/CD: GitHub Actions (iOS Tuist build/test, server, lint-pr) + tag→TestFlight 잡
+- ✅ Xcode project 자동 생성: **Tuist 4.43.2** (`ios/Tuist.swift` + `Workspace.swift` + 14× `Project.swift`) + `ios/Makefile` + Fastlane
 - ⏳ **남은 외부 작업** (코드 외):
   - App Store Connect 앱 등록 + Apple Developer Team 가입
   - `sauna.app` 도메인 + `/.well-known/apple-app-site-association` 호스팅 (Passkey associated domain)
@@ -53,18 +53,28 @@ sauna-ios/
 ├── CLAUDE.md
 ├── README.md
 ├── .gitignore
+├── .swiftlint.yml                   ← included: ios/Projects + server/Sources
 ├── docs/                            ← 설계 문서
 ├── design-handoff/
-│   ├── sauna-app.html              ← v2 메이플 (참고)
 │   ├── v3-jjimjilbang/              ← v3 황토방 (현재 정본)
 │   │   ├── Jjimjilbang Flow.html
 │   │   └── lib/
-│   ├── lib/, scraps/, uploads/      ← v2 잔재
-├── ios/
-│   └── SaunaPackage/                ← SPM 패키지 (모든 모듈)
-│       ├── Package.swift
-│       ├── Sources/
-│       └── Tests/
+│   └── (v2 잔재)
+├── ios/                             ← Tuist Modular Architecture (TMA)
+│   ├── Tuist.swift                  ← 글로벌 Tuist 설정
+│   ├── Workspace.swift              ← 14 Project 통합 워크스페이스
+│   ├── Tuist/
+│   │   ├── Package.swift            ← 외부 SPM (Sentry 등)
+│   │   └── ProjectDescriptionHelpers/  ← SaunaConstants + Project.library/feature 헬퍼
+│   ├── Projects/
+│   │   ├── App/Sauna/               ← composition root + entitlements + xcconfig
+│   │   ├── Domain/                  ← Interface / Sources / Testing / Tests (4-target)
+│   │   ├── Data/                    ← Sources + Tests
+│   │   ├── Core/                    ← DesignSystem · CustomIcons · PixelMascot
+│   │   │                              · SharedUI · NetworkCore · Observability · WebViewBridge
+│   │   └── Features/                ← Onboarding · Home · Room · Me
+│   ├── Makefile                     ← tuist install/generate/build/test/lint/triple-check
+│   └── fastlane/, Gemfile           ← TestFlight beta 업로드
 ├── server/                          ← Vapor (Swift) 서버
 │   ├── Package.swift
 │   ├── Sources/SaunaServer/
@@ -74,9 +84,12 @@ sauna-ios/
 │   ├── docker-compose.yml           ← 로컬: redis + postgres
 │   └── terraform/                   ← AWS Seoul (Phase 2+)
 └── .github/workflows/
-    ├── ios.yml
+    ├── ios.yml                      ← Tuist 기반 build/test + SwiftLint + tag→TestFlight
     └── server.yml
 ```
+
+**Tuist 생성물(`ios/Sauna.xcworkspace`, `ios/**/*.xcodeproj`, `ios/**/Derived`, `ios/Tuist/.build`)은 `.gitignore` 처리.**
+manifests(`Project.swift`/`Workspace.swift`/`Tuist.swift`)와 `ProjectDescriptionHelpers/` 만 commit.
 
 ## 이 레포 규칙
 
@@ -109,9 +122,16 @@ sauna-ios/
 - View: 대표 화면(Splash, Home/evening, Room/medium, Profile)만 snapshot.
 - 커버리지: Domain 90%+, Data 70%, ViewModel 70%.
 
-### 모듈화 (SPM)
-- 새 기능은 별도 모듈. Feature 간 직접 import 금지 — App만이 조립자.
-- 외부 dep은 `Data` / `NetworkCore` / `WebViewBridge` 만 가질 수 있음. Domain·Feature는 외부 dep ❌.
+### 모듈화 (Tuist TMA)
+- 새 기능은 별도 Tuist Project. **Feature 간 직접 import 금지** — App 만이 조립자.
+- **Domain 은 4-target**: `DomainInterface`(엔티티 + 프로토콜) / `Domain`(UseCase 구현) / `DomainTesting`(Stub) / `DomainTests`. 다른 모듈은 항상 `DomainInterface` 만 import 한다 — 구현부(`Domain`) 직접 import 는 컴포지션 루트(App, Data, FeatureRoom 같이 UseCase 가 필요한 곳)만 예외 허용.
+- 외부 dep 은 `Data` / `NetworkCore` / `WebViewBridge` 만 가질 수 있음. Domain · Feature 는 외부 dep ❌.
+- 새 모듈 추가:
+  1. `ios/Projects/<Layer>/<Name>/` 디렉토리 + `Project.swift` (헬퍼 `Project.library` 또는 `Project.feature` 사용)
+  2. `ios/Workspace.swift` projects 배열에 추가
+  3. `ios/Tuist/ProjectDescriptionHelpers/Constants.swift` 의 `SaunaModule` enum 에 케이스 추가
+  4. `ios/Makefile` 의 `SCHEMES_TEST` 와 CI workflow 의 모듈 루프에도 추가 (테스트 타겟 있으면)
+  5. `cd ios && make generate` 후 빌드 확인
 
 ### 비영속
 - 메시지: 로컬·서버·로그 어디에도 저장 ❌ (휘발성이 제품 본질).
@@ -211,12 +231,28 @@ Agent({
 # v3 디자인 원본 열어보기
 open "design-handoff/v3-jjimjilbang/Jjimjilbang Flow.html"
 
-# iOS SPM 패키지 빌드/테스트
-cd ios/SaunaPackage && swift build && swift test
+# iOS — 첫 setup (다른 PC 에서 pull 직후)
+brew install tuist || curl -Ls https://mise.run | sh && mise use -g tuist@4.43.2
+cd ios && make install   # 외부 SPM (Sentry 등) 받아오기
+cd ios && make generate  # .xcworkspace + .xcodeproj 생성
+
+# iOS 빌드 / 테스트 / lint (모두 Makefile 정본)
+cd ios && make build         # Sauna 앱 Debug 빌드
+cd ios && make test          # 모든 모듈 단위 테스트 (모듈별 통과 카운트)
+cd ios && make lint          # SwiftLint --strict
+cd ios && make triple-check  # build + test + lint 한 방에
+cd ios && make open          # Xcode 에서 워크스페이스 열기
 
 # 서버 로컬 실행
 cd server && swift run SaunaServer
 
 # 로컬 인프라 (Redis + Postgres)
 cd infra && docker-compose up -d
+
+# TestFlight 업로드 (시크릿 입력 후)
+cd ios && bundle install && make beta
 ```
+
+**다른 환경에서 pull 후 컨텍스트 이어가기:**
+1. `git pull` → 2. `cd ios && make install && make generate` → 3. `make open` → Xcode 에서 Sauna scheme 선택.
+4. CLI 만 쓸거면 generate 까지 한 뒤 `make triple-check`.
