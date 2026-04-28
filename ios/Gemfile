@@ -1,0 +1,6 @@
+source "https://rubygems.org"
+
+# Fastlane — TestFlight + Match + Provisioning
+gem "fastlane", "~> 2.225"
+
+# CocoaPods 안 씀 — SPM only.

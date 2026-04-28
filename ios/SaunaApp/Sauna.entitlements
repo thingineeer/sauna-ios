@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Apple Passkey requires Associated Domains. The webcredentials: domain
+         must serve `/.well-known/apple-app-site-association` with the team id. -->
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>webcredentials:sauna.app</string>
+    </array>
+    <!-- APNs (push) — bound when we add notifications in phase 5. -->
+    <key>aps-environment</key>
+    <string>development</string>
+</dict>
+</plist>

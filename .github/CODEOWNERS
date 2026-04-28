@@ -1,0 +1,4 @@
+# Default owner for everything in this repo.
+# Solo developer for now — keep the list narrow until contributors join.
+# See https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+*       @thingineeer

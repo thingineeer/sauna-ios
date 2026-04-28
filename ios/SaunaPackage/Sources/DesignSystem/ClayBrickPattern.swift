@@ -57,9 +57,9 @@ public struct ClayFloorPattern: View {
         Canvas { context, size in
             let plankPattern: [(CGFloat, Color)] = [
                 (14, Color(red: 0.549, green: 0.384, blue: 0.220)), // #8c6238
-                (2,  Color(red: 0.353, green: 0.227, blue: 0.094)), // #5a3a18 mortar
+                (2, Color(red: 0.353, green: 0.227, blue: 0.094)), // #5a3a18 mortar
                 (14, Color(red: 0.612, green: 0.439, blue: 0.282)), // #9c7048
-                (2,  Color(red: 0.353, green: 0.227, blue: 0.094)),
+                (2, Color(red: 0.353, green: 0.227, blue: 0.094)),
             ]
             let total = plankPattern.reduce(0) { $0 + $1.0 }
             var x: CGFloat = 0

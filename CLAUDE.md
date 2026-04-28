@@ -7,14 +7,28 @@
 
 황토방(찜질방) 톤의 익명 실시간 채팅 앱. 방 3개 고정(일상/주식/취준), 닉네임 매일 자정 새로, 메시지는 증기처럼 사라짐. iOS 17+ 네이티브, 일부 비실시간 페이지는 WKWebView.
 
-## 현재 단계
+## 현재 단계 (2026-04-28)
 
-**v3 디자인(Jjimjilbang Flow) 확정 → 구현 진행 중.**
+**iOS + 서버 Phase 2 wireup 코드 완료. 외부 시크릿 / 도메인 등록만 남음.**
 
-- 디자인 정본: `design-handoff/v3-jjimjilbang/Jjimjilbang Flow.html`
-- 기술 스택 확정: `docs/tech-stack-final.md` (이 파일이 최종)
-- iOS SPM 패키지 + 서버(Vapor) + 인프라(AWS Seoul) 모노레포 구조
-- 설계 완료, 코드 진행
+- ✅ 디자인 정본 v3 (Jjimjilbang Flow) — 17 화면 모두 SwiftUI 구현
+- ✅ 기술 스택 확정 (`docs/tech-stack-final.md`)
+- ✅ iOS SPM 패키지 — 15 모듈 (Observability 추가) + 10 테스트 타겟
+- ✅ **TDD 합계: iOS 72 + server 18 = 90 tests · 0 fail · 0 SwiftLint violations / 170 files**
+- ✅ AppContainer.live() — KeychainNicknameStore + RemoteRoomRepository + PasskeyAuthenticator 실 wireup
+- ✅ Apple Passkey 어댑터 (ASAuthorizationPlatformPublicKeyCredentialProvider)
+- ✅ Sentry-Cocoa 8.x — 휘발성 정책 가드 (chat.message breadcrumb drop, headers 마스킹)
+- ✅ Vapor 서버: Postgres 풀 + ensureSchema + PostgresPasskeyStore 실 SQL + InMemoryPasskeyStore 폴백
+- ✅ PasskeyController: SecRandomCopyBytes 32-byte challenge + ChallengeStore actor + 5분 TTL
+- ✅ 인프라: docker-compose (Redis + Postgres) + Terraform skeleton
+- ✅ CI/CD: GitHub Actions (iOS build/test, server, lint-pr) + tag→TestFlight 잡
+- ✅ Xcode project 자동 생성: `ios/project.yml` (xcodegen) + `ios/Makefile` + Fastlane
+- ⏳ **남은 외부 작업** (코드 외):
+  - App Store Connect 앱 등록 + Apple Developer Team 가입
+  - `sauna.app` 도메인 + `/.well-known/apple-app-site-association` 호스팅 (Passkey associated domain)
+  - GitHub secrets 입력: FASTLANE_TEAM_ID / APP_STORE_CONNECT_API_KEY_* / SENTRY DSN
+  - WebAuthn 라이브러리 통합 (phase 3 — 현재는 challenge generation 까지)
+  - 첫 TestFlight 빌드 업로드 → closed beta
 
 ## 먼저 읽어야 할 파일 (순서 중요)
 
@@ -122,6 +136,62 @@ sauna-ios/
 - 커밋 메시지: 한글 또는 conventional commits (feat:/fix:/chore:/refactor:)
 - push는 명시적 요청 시에만
 - 시키지 않은 작업 하지 말 것
+
+## 브랜치 / 머지 워크플로우 (확정)
+
+**계층:**
+```
+release           ← Play Store / App Store 출시본 (production)
+   ▲
+   │ merge (배포 완료 후)
+   │
+  dev             ← 통합 테스트 (TestFlight / Internal QA)
+   ▲
+   │ merge (1.0.0 작업 종료 시)
+   │
+  1.0.0           ← 현재 버전 통합 브랜치
+   ▲ ▲ ▲
+   │ │ │ merge (각 worktree 작업 종료 시)
+   │ │ │
+  feature/foundation
+  feature/feature-room
+  feature/server-scaffold
+  ... (worktree 단위 브랜치들)
+```
+
+**규칙:**
+1. `1.0.0` 브랜치에서 **단위별로 worktree 브랜치**를 판다 (예: `feature/feature-room`, `feature/ci-actions`).
+2. 각 worktree 브랜치는 **N개의 의미 있는 atomic 커밋**을 포함한다. 한 커밋 = 한 의도.
+3. worktree 작업 종료 시 `1.0.0` 으로 **regular merge** (= merge commit 남김). **`squash` 머지 절대 금지.**
+4. `1.0.0` 의 변화가 안정되면 `dev` 로 merge → 통합 테스트 / TestFlight.
+5. App Store / Play Store 출시 완료 시 `dev` → `release` merge.
+6. `main` 은 트렁크. 새 버전 시작 시 `main` 에서 다음 버전 브랜치(`1.1.0` 등)를 다시 판다.
+
+**병렬 작업 (Worktree):**
+```bash
+# 1.0.0 에서 새 단위 작업 시작
+git worktree add ../sauna-ios.feature-room -b feature/feature-room 1.0.0
+
+# 작업 → atomic 커밋 N개
+
+# 1.0.0 으로 머지 (squash 금지)
+git checkout 1.0.0
+git merge --no-ff feature/feature-room
+
+# worktree 정리
+git worktree remove ../sauna-ios.feature-room
+git branch -d feature/feature-room
+```
+
+**에이전트 스폰 (자동 worktree):**
+```
+Agent({
+  isolation: "worktree",
+  description: "...",
+  prompt: "...",
+})
+```
+→ 에이전트가 worktree 안에서 작업하고 브랜치명·경로를 리턴. 메인 세션이 그걸 `1.0.0` 으로 `merge --no-ff` 한다.
 
 ## 결정 대기 / 오픈 이슈
 
