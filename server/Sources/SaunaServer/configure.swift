@@ -82,6 +82,10 @@ private func wirePostgres(_ app: Application) async -> any PasskeyStore {
     )
     app.storage[PostgresPoolKey.self] = PostgresPoolWrapper(pool: pool)
 
+    // EventLoopGroupConnectionPool 가 `deinit` 보다 먼저 shutdown 되어야
+    // 안 그러면 AsyncKit 가 assertion 으로 process 죽임. Vapor lifecycle 에 hook.
+    app.lifecycle.use(PostgresPoolLifecycle(pool: pool))
+
     let store = PostgresPasskeyStore(pool: pool, logger: app.logger)
     do {
         try await store.ensureSchema()
@@ -96,6 +100,23 @@ private func wirePostgres(_ app: Application) async -> any PasskeyStore {
         return InMemoryPasskeyStore()
     }
     return store
+}
+
+/// app.asyncShutdown() 에서 자동으로 pool.shutdown() 을 호출하게 만든다.
+/// 직접 `app.lifecycle.use(...)` 에 넘겨서 Vapor 가 lifecycle 끝에 호출.
+///
+/// `EventLoopGroupConnectionPool` 은 `@preconcurrency` 영역의 타입이라
+/// `@unchecked Sendable` 로 wrap. 내부적으로 EventLoop confined 라 안전.
+private struct PostgresPoolLifecycle: LifecycleHandler, @unchecked Sendable {
+    let pool: EventLoopGroupConnectionPool<PostgresConnectionSource>
+    func shutdown(_ application: Application) {
+        do {
+            try pool.syncShutdownGracefully()
+        } catch {
+            application.logger.error("PostgresKit: pool shutdown failed",
+                metadata: ["reason": .string("\(error)")])
+        }
+    }
 }
 
 /// `EventLoopGroupConnectionPool` is internally synchronized but not formally
