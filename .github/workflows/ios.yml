@@ -30,78 +30,91 @@ permissions:
   contents: read
 
 env:
-  PACKAGE_PATH: ios/SaunaPackage
-  # Pin to Xcode 16 (latest stable on macos-14 runners as of 2026-04).
-  # Bump explicitly here when GitHub-hosted images expose a newer stable.
-  XCODE_VERSION: "16.2"
+  IOS_DIR: ios
+  TUIST_VERSION: "4.43.2"
+  XCODE_VERSION: "26.0"
+  SIMULATOR: "iPhone 17"
 
 jobs:
   build-test:
-    name: Build & Test (SPM)
+    name: Build & Test (Tuist)
     runs-on: macos-14
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Select Xcode ${{ env.XCODE_VERSION }}
-        run: sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+        run: sudo xcode-select -s "/Applications/Xcode.app" || true
+
+      - name: Install Tuist via mise
+        uses: jdx/mise-action@v2
+        with:
+          tool_versions: |
+            tuist ${{ env.TUIST_VERSION }}
 
       - name: Print toolchain
         run: |
           xcodebuild -version
           swift --version
+          tuist version
 
-      - name: Cache SPM build artifacts
+      - name: Cache Tuist external SPM packages
         uses: actions/cache@v4
         with:
           path: |
-            ${{ env.PACKAGE_PATH }}/.build
+            ${{ env.IOS_DIR }}/Tuist/.build
             ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-xcode${{ env.XCODE_VERSION }}-spm-${{ hashFiles(format('{0}/Package.resolved', env.PACKAGE_PATH), format('{0}/Package.swift', env.PACKAGE_PATH)) }}
+          key: ${{ runner.os }}-xcode${{ env.XCODE_VERSION }}-tuist-${{ hashFiles(format('{0}/Tuist/Package.swift', env.IOS_DIR), format('{0}/Tuist/Package.resolved', env.IOS_DIR)) }}
           restore-keys: |
-            ${{ runner.os }}-xcode${{ env.XCODE_VERSION }}-spm-
+            ${{ runner.os }}-xcode${{ env.XCODE_VERSION }}-tuist-
 
-      - name: Resolve dependencies
-        run: swift package --package-path "$PACKAGE_PATH" resolve
+      - name: Tuist install (외부 SPM)
+        working-directory: ${{ env.IOS_DIR }}
+        run: tuist install
 
-      - name: Build
-        run: swift build --package-path "$PACKAGE_PATH"
+      - name: Tuist generate
+        working-directory: ${{ env.IOS_DIR }}
+        run: tuist generate --no-open
 
-      - name: Test (with code coverage)
-        run: swift test --package-path "$PACKAGE_PATH" --enable-code-coverage
-
-      - name: Locate coverage data
-        id: coverage
+      - name: Build (Sauna)
+        working-directory: ${{ env.IOS_DIR }}
         run: |
-          # SPM places the .profdata under .build/<triple>/debug/codecov/
-          PROFDATA=$(find "$PACKAGE_PATH/.build" -name "default.profdata" -type f | head -n 1)
-          XCTEST_BIN=$(find "$PACKAGE_PATH/.build" -path "*/debug/*PackageTests.xctest/Contents/MacOS/*PackageTests" -type f | head -n 1)
-          if [ -z "$PROFDATA" ]; then
-            echo "::warning::no profdata produced — skipping coverage export"
-            echo "have_coverage=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "have_coverage=true" >> "$GITHUB_OUTPUT"
-          echo "profdata=$PROFDATA" >> "$GITHUB_OUTPUT"
-          echo "xctest_bin=$XCTEST_BIN" >> "$GITHUB_OUTPUT"
+          xcodebuild -workspace Sauna.xcworkspace -scheme Sauna \
+            -destination "platform=iOS Simulator,name=$SIMULATOR,OS=latest" \
+            -configuration Debug build
 
-      - name: Export coverage report (lcov)
-        if: steps.coverage.outputs.have_coverage == 'true'
+      - name: Test (per-module)
+        working-directory: ${{ env.IOS_DIR }}
         run: |
-          mkdir -p coverage-report
-          xcrun llvm-cov export \
-            -format=lcov \
-            -instr-profile="${{ steps.coverage.outputs.profdata }}" \
-            "${{ steps.coverage.outputs.xctest_bin }}" \
-            > coverage-report/coverage.lcov || true
-          xcrun llvm-cov report \
-            -instr-profile="${{ steps.coverage.outputs.profdata }}" \
-            "${{ steps.coverage.outputs.xctest_bin }}" \
-            > coverage-report/coverage-summary.txt || true
+          set -euo pipefail
+          PASS=0; FAIL=0
+          for s in Domain Data PixelMascot Observability \
+                   FeatureOnboarding FeatureHome FeatureRoom FeatureMe; do
+            echo "::group::Test $s"
+            out=$(xcodebuild test -workspace Sauna.xcworkspace -scheme "$s" \
+              -destination "platform=iOS Simulator,name=$SIMULATOR,OS=latest" 2>&1) || {
+                echo "$out" | tail -30
+                FAIL=$((FAIL + 1))
+                echo "::endgroup::"
+                continue
+              }
+            p=$(echo "$out" | grep -cE "Test Case .* passed" || true)
+            f=$(echo "$out" | grep -cE "Test Case .* failed" || true)
+            echo "$s : $p passed / $f failed"
+            PASS=$((PASS + p))
+            [ "$f" -gt 0 ] && FAIL=$((FAIL + 1))
+            echo "::endgroup::"
+          done
+          echo "Total: $PASS passed across modules"
+          [ "$FAIL" -eq 0 ]
+
+      - name: Skip coverage export (Tuist 단계 — 추후 추가)
+        if: false
+        run: echo "TODO"
 
       - name: Upload coverage artifact
-        if: steps.coverage.outputs.have_coverage == 'true'
+        if: false
         uses: actions/upload-artifact@v4
         with:
           name: ios-coverage-${{ github.run_id }}
@@ -121,7 +134,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run SwiftLint (warnings as errors)
-        run: swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources server/Sources
+        run: swiftlint lint --strict --config .swiftlint.yml ios/Projects server/Sources
 
   # ────────────────────────────────────────────────────────────────────────
   # TestFlight upload — only on `v*` tag push, after build-test + lint green.

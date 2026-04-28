@@ -1,15 +1,17 @@
-# Sauna iOS · Makefile
+# Sauna iOS · Tuist (TMA) Makefile
 #
-# 정본 단일 명령들. 새 환경에서도 이거만 보고 시작 가능.
+# 정본 단일 명령들. Tuist 4 + TMA 5-target 패턴.
 
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 .DEFAULT_GOAL := help
 
-IOS_DIR  := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-PKG_DIR  := $(IOS_DIR)/SaunaPackage
-PROJ_YML := $(IOS_DIR)/project.yml
-XCODEPROJ := $(IOS_DIR)/Sauna.xcodeproj
+IOS_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
+DEST    := platform=iOS Simulator,name=iPhone 17,OS=latest
+WS      := Sauna.xcworkspace
+SCHEMES_TEST := Domain Data PixelMascot Observability \
+                FeatureOnboarding FeatureHome FeatureRoom FeatureMe
 
 CYAN  := \033[36m
 RESET := \033[0m
@@ -20,57 +22,62 @@ help: ## 사용 가능한 타겟 목록
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  $(CYAN)%-18s$(RESET) %s\n", $$1, $$2}'
 
 # =====================================================================
-# SPM
+# Tuist
 # =====================================================================
 
+.PHONY: install
+install: ## tuist install — 외부 SPM (Sentry 등) 다운로드
+	cd $(IOS_DIR) && tuist install
+
+.PHONY: generate
+generate: ## tuist generate — .xcworkspace + .xcodeproj 들 생성
+	cd $(IOS_DIR) && tuist generate --no-open
+
 .PHONY: build
-build: ## SaunaPackage SPM 빌드
-	cd $(PKG_DIR) && swift build
+build: generate ## 빌드 (Sauna app, Debug)
+	cd $(IOS_DIR) && xcodebuild -workspace $(WS) -scheme Sauna \
+		-destination "$(DEST)" -configuration Debug build
 
 .PHONY: test
-test: ## SaunaPackage SPM 테스트 (커버리지 포함)
-	cd $(PKG_DIR) && swift test --enable-code-coverage
+test: generate ## 모든 모듈 단위 테스트 (한 번에 모듈별로 통과 카운트)
+	@cd $(IOS_DIR) && \
+	pass=0; fail=0; \
+	for s in $(SCHEMES_TEST); do \
+	  out=$$(xcodebuild test -workspace $(WS) -scheme "$$s" \
+	    -destination "$(DEST)" 2>&1); \
+	  p=$$(echo "$$out" | grep -cE "Test Case .* passed"); \
+	  f=$$(echo "$$out" | grep -cE "Test Case .* failed"); \
+	  status="OK"; [ "$$f" -gt 0 ] && status="FAIL"; \
+	  printf "  [%s] %-22s %3d passed / %d failed\n" "$$status" "$$s" "$$p" "$$f"; \
+	  pass=$$((pass + p)); fail=$$((fail + f)); \
+	done; \
+	echo ""; echo "Total: $$pass passed / $$fail failed"; \
+	[ "$$fail" -eq 0 ]
 
 .PHONY: lint
-lint: ## SwiftLint --strict (CI 와 동일)
-	cd $(IOS_DIR)/.. && swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources
-
-.PHONY: lint-fix
-lint-fix: ## SwiftLint 자동 수정 가능한 violation 들
-	cd $(IOS_DIR)/.. && swiftlint --fix ios/SaunaPackage/Sources
+lint: ## SwiftLint --strict (전체 모듈)
+	cd $(IOS_DIR)/.. && swiftlint lint --strict --config .swiftlint.yml \
+		ios/Projects server/Sources
 
 .PHONY: triple-check
 triple-check: build test lint ## 빌드 + 테스트 + lint 한 방에
 
-# =====================================================================
-# Xcode project (xcodegen)
-# =====================================================================
+.PHONY: open
+open: generate ## Xcode 에서 열기
+	cd $(IOS_DIR) && open Sauna.xcworkspace
 
-.PHONY: xcode
-xcode: ## ios/Sauna.xcodeproj 생성/갱신 (xcodegen 필요)
-	@if ! command -v xcodegen >/dev/null 2>&1; then \
-		echo "xcodegen 이 없습니다. 'brew install xcodegen' 후 다시 실행하세요."; \
-		exit 1; \
-	fi
-	cd $(IOS_DIR) && xcodegen generate --spec project.yml
-
-.PHONY: xcode-clean
-xcode-clean: ## .xcodeproj 삭제 (재생성 전 안전 정리)
-	rm -rf $(XCODEPROJ)
-
-.PHONY: xcode-open
-xcode-open: ## Xcode 에서 열기 (xcodeproj 없으면 먼저 생성)
-	[ -d "$(XCODEPROJ)" ] || $(MAKE) xcode
-	open $(XCODEPROJ)
+.PHONY: clean
+clean: ## 생성물 정리 (.xcodeproj, .xcworkspace, DerivedData)
+	cd $(IOS_DIR) && tuist clean
+	rm -rf $(IOS_DIR)/Sauna.xcworkspace
+	rm -rf $(IOS_DIR)/Projects/**/*.xcodeproj
+	rm -rf $(IOS_DIR)/Projects/**/**/*.xcodeproj
+	rm -rf $(IOS_DIR)/.build
 
 # =====================================================================
 # TestFlight (Fastlane)
 # =====================================================================
 
 .PHONY: beta
-beta: ## TestFlight 업로드 (App Store Connect API 키 필요)
+beta: generate ## TestFlight 업로드 (App Store Connect API 키 필요)
 	cd $(IOS_DIR) && bundle exec fastlane beta
-
-.PHONY: release
-release: ## App Store 배포 (수동 확인 필요)
-	cd $(IOS_DIR) && bundle exec fastlane release

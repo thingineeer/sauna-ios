@@ -32,6 +32,16 @@ Package.pins
 Package.resolved
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
+# Tuist 생성물 — manifests(Project.swift / Workspace.swift / Tuist.swift) 만 commit.
+# .xcworkspace / .xcodeproj / Derived/.build 는 매 generate 마다 새로 만들어지므로 ignore.
+ios/Sauna.xcworkspace
+ios/**/*.xcodeproj
+ios/Tuist/.build
+ios/Tuist/Dependencies
+ios/Derived/
+ios/**/Derived/
+**/.tuist-bin/
+
 # CocoaPods (사용 안 해도 일단 ignore)
 Pods/
 

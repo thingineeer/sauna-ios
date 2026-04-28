@@ -6,17 +6,20 @@
 # about which rules emit at warning severity.
 
 # ── Paths ────────────────────────────────────────────────────────────────────
+# TMA(Tuist Modular Architecture) 기준: 모든 모듈 소스는 ios/Projects/<Layer>/<Name>/Sources.
+# Domain Interface/Testing 도 lint 대상에 포함하기 위해 ios/Projects 전체를 included 로 둠.
 included:
-  - ios/SaunaPackage/Sources
+  - ios/Projects
   - server/Sources
 
 excluded:
   - .build
   - "**/.build"
-  - ios/SaunaPackage/.build
+  - ios/Tuist/.build
   - server/.build
   - "**/Tests"
   - "**/*Tests"
+  - "**/Testing"   # DomainTesting Stubs.swift — production lint 대상 아님
   - DerivedData
   - "**/DerivedData"
   - design-handoff
