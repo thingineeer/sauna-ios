@@ -1,7 +1,7 @@
-# Sauna · Fastlane
+# Sauna · Fastlane (Tuist 기반)
 #
 # 흐름:
-#   make xcode          → xcodegen 으로 ios/Sauna.xcodeproj 생성
+#   make generate       → Tuist 로 ios/Sauna.xcworkspace + 14× .xcodeproj 생성
 #   bundle exec fastlane beta
 #       → build_app (Release)
 #       → upload_to_testflight
@@ -15,25 +15,33 @@
 
 default_platform(:ios)
 
+# Tuist 가 만든 워크스페이스와 App 타겟의 .xcodeproj 경로.
+# `increment_build_number` 는 plist 를 직접 만지므로 .xcodeproj 가 필요.
+WORKSPACE     = "Sauna.xcworkspace".freeze
+APP_XCODEPROJ = "Projects/App/Sauna/Sauna.xcodeproj".freeze
+APP_SCHEME    = "Sauna".freeze
+
 platform :ios do
 
   before_all do
-    # Fastlane 이 xcodeproj 를 못 찾으면 즉시 명확한 에러로 실패시킴.
-    unless File.exist?("../Sauna.xcodeproj")
-      UI.user_error!("ios/Sauna.xcodeproj 가 없습니다. 'make xcode' 부터 실행하세요.")
+    unless File.exist?("../#{WORKSPACE}")
+      UI.user_error!("ios/#{WORKSPACE} 가 없습니다. 'make install && make generate' 부터 실행하세요.")
+    end
+    unless File.exist?("../#{APP_XCODEPROJ}")
+      UI.user_error!("ios/#{APP_XCODEPROJ} 가 없습니다. 'make generate' 가 먼저 돌아야 합니다.")
     end
   end
 
   desc "테스트 + 빌드 (TestFlight 업로드 안 함)"
   lane :build_only do
     run_tests(
-      project: "Sauna.xcodeproj",
-      scheme: "Sauna",
+      workspace: WORKSPACE,
+      scheme: APP_SCHEME,
       devices: ["iPhone 16"]
     )
     build_app(
-      project: "Sauna.xcodeproj",
-      scheme: "Sauna",
+      workspace: WORKSPACE,
+      scheme: APP_SCHEME,
       configuration: "Release",
       export_method: "app-store",
       output_directory: "build",
@@ -54,15 +62,14 @@ platform :ios do
       in_house: false
     )
 
-    # 빌드 번호를 자동으로 한 칸 올림. 같은 marketing version 안에서만 누적.
     increment_build_number(
       build_number: latest_testflight_build_number(api_key: api_key) + 1,
-      xcodeproj: "Sauna.xcodeproj"
+      xcodeproj: APP_XCODEPROJ
     )
 
     build_app(
-      project: "Sauna.xcodeproj",
-      scheme: "Sauna",
+      workspace: WORKSPACE,
+      scheme: APP_SCHEME,
       configuration: "Release",
       export_method: "app-store",
       output_directory: "build",
