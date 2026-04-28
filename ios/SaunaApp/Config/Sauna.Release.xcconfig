@@ -1,0 +1,10 @@
+// Sauna · Release 빌드 (TestFlight / App Store)
+//
+// CI 가 Fastlane 실행 전 이 파일을 환경변수로 덮어쓴다. 직접 값 적지 말 것.
+// 값은 GitHub Actions secrets 에 보관됨:
+//   SAUNA_HTTP_BASE_URL · SAUNA_WS_BASE_URL · SAUNA_SENTRY_DSN
+
+SAUNA_HTTP_BASE_URL = $(SAUNA_HTTP_BASE_URL)
+SAUNA_WS_BASE_URL   = $(SAUNA_WS_BASE_URL)
+SAUNA_SENTRY_DSN    = $(SAUNA_SENTRY_DSN)
+SAUNA_USE_STUB_ROOM = 0

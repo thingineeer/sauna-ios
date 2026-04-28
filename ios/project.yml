@@ -64,6 +64,9 @@ targets:
         MARKETING_VERSION: 0.1.0
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: SaunaApp/Sauna.entitlements
+      configs:
+        Debug: SaunaApp/Config/Sauna.Debug.xcconfig
+        Release: SaunaApp/Config/Sauna.Release.xcconfig
     dependencies:
       - package: SaunaPackage
         product: SaunaApp
