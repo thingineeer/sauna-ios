@@ -72,6 +72,12 @@ AppStoreConnect_AuthKey_*.p8
 node_modules/
 npm-debug.log*
 
+# Firebase Functions build artifacts
+functions/lib/
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+
 # Claude Code subagent worktrees (절대 트래킹 X — 별도 브랜치)
 .claude/worktrees/
 
