@@ -26,6 +26,7 @@
       { "source": "/health", "function": { "functionId": "health", "region": "asia-northeast3" } },
       { "source": "/rooms", "function": { "functionId": "rooms", "region": "asia-northeast3" } },
       { "source": "/rooms/*/send", "function": { "functionId": "sendMessage", "region": "asia-northeast3" } },
+      { "source": "/rooms/*/messages", "function": { "functionId": "getMessages", "region": "asia-northeast3" } },
       { "source": "/rooms/*/occupancy", "function": { "functionId": "occupancy", "region": "asia-northeast3" } },
       { "source": "/messages/cleanup", "function": { "functionId": "cleanupMessages", "region": "asia-northeast3" } }
     ]
