@@ -1,0 +1,11 @@
+// Sauna · Debug 빌드 (개발 / 시뮬레이터)
+//
+// 로컬 디버그에서는 stub room 으로 서버 의존 없이 동작. Sentry DSN 은 비워둠
+// (개발 중 사고로 prod Sentry 로 이벤트 보내지 않게 — 필요하면 따로 set).
+
+SAUNA_HTTP_BASE_URL = http:/$()/localhost:8080
+SAUNA_WS_BASE_URL   = ws:/$()/localhost:8080
+SAUNA_SENTRY_DSN    =
+SAUNA_USE_STUB_ROOM = 1
+
+// `$()` 는 xcconfig 의 colon escape — `://` 가 변수 치환으로 해석되지 않게.

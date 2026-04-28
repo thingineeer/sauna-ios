@@ -140,6 +140,10 @@ jobs:
       APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
       FASTLANE_CHANGELOG: ${{ github.event.head_commit.message }}
+      # Sauna runtime config — Release.xcconfig 가 $(SAUNA_*) 로 읽음.
+      SAUNA_HTTP_BASE_URL: ${{ vars.SAUNA_HTTP_BASE_URL || 'https://api.sauna.app' }}
+      SAUNA_WS_BASE_URL:   ${{ vars.SAUNA_WS_BASE_URL   || 'wss://api.sauna.app' }}
+      SAUNA_SENTRY_DSN:    ${{ secrets.SAUNA_SENTRY_DSN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
