@@ -108,6 +108,43 @@ export const sendMessage = onRequest(httpsOpts, async (req, res) => {
 });
 
 // ────────────────────────────────────────────────────────────────────
+// /rooms/:roomId/messages?since=<unixMs>&limit=20
+//   디자인 정본의 'rise' 애니가 700ms~3200ms 주기로 spawn 하므로 클라가
+//   1~2초 간격 polling 만 해도 자연스러움. WebSocket 대체.
+// ────────────────────────────────────────────────────────────────────
+
+export const getMessages = onRequest(httpsOpts, async (req, res) => {
+    const roomId = pickRoomId(req);
+    if (!roomId) {
+        res.status(404).json({ error: "unknown_room" });
+        return;
+    }
+    const sinceMs = Math.max(0, Number(((req as any).query?.since ?? 0)));
+    const limit = Math.max(1, Math.min(50, Number(((req as any).query?.limit ?? 20))));
+
+    const db = getFirestore();
+    const snap = await db.collection("sauna_messages")
+        .where("roomId", "==", roomId)
+        .where("ts", ">", sinceMs)
+        .orderBy("ts", "asc")
+        .limit(limit)
+        .get();
+
+    const messages = snap.docs.map((d) => {
+        const m = d.data();
+        return {
+            id: d.id,
+            roomId: m.roomId,
+            nickname: m.nickname,
+            text: m.text,
+            ts: m.ts,
+            senderId: m.senderId,
+        };
+    });
+    res.status(200).json({ messages, serverTs: Date.now() });
+});
+
+// ────────────────────────────────────────────────────────────────────
 // /rooms/:roomId/occupancy  — 현재 방 인원 (Realtime presence count).
 // ────────────────────────────────────────────────────────────────────
 
