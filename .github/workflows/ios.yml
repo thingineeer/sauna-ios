@@ -18,6 +18,8 @@ on:
     # v* 태그 push 시에는 TestFlight 업로드 잡까지 간다.
     tags:
       - "v*"
+  # Manual trigger — billing-paused 환경에서 paid macOS 잡 수동 실행용.
+  workflow_dispatch:
 
 # Cancel in-flight runs on the same ref (PR or branch) when a new commit lands.
 concurrency:
@@ -108,29 +110,15 @@ jobs:
           retention-days: 14
 
   lint:
+    # SwiftLint은 Linux 컨테이너에서 돈다. macos 분 (10x cost) 절약 + 결정론.
     name: SwiftLint (strict)
-    runs-on: macos-14
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
+    container:
+      image: ghcr.io/realm/swiftlint:0.57.1
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Cache Homebrew downloads
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/Library/Caches/Homebrew/downloads
-            ~/Library/Caches/Homebrew/api
-          key: ${{ runner.os }}-brew-swiftlint-v1
-
-      - name: Install SwiftLint
-        run: |
-          if ! command -v swiftlint >/dev/null 2>&1; then
-            brew install swiftlint
-          else
-            echo "swiftlint already installed: $(swiftlint version)"
-          fi
-          swiftlint version
 
       - name: Run SwiftLint (warnings as errors)
         run: swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources server/Sources
