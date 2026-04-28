@@ -37,8 +37,8 @@ jobs:
           #   1) conventional commits: type(scope)?!?: subject
           #      type ∈ feat | fix | chore | refactor | docs | style | test | ci | build | perf | revert
           #   2) Korean prefix: e.g. "기능: …", "수정: …", "리팩터: …", "문서: …", "스타일: …", "테스트: …", "CI: …"
-          regex_cc='^(feat|fix|chore|refactor|docs|style|test|ci|build|perf|revert)(\([a-z0-9._/-]+\))?!?: .+'
-          regex_ko='^(기능|수정|버그|리팩터|리팩토링|문서|스타일|테스트|성능|빌드|CI|배포|잡일)(\([^)]+\))?!?: .+'
+          regex_cc='^(feat|fix|chore|refactor|docs|style|test|ci|build|perf|revert|release|merge|harness)(\([a-z0-9._/-]+\))?!?: .+'
+          regex_ko='^(기능|수정|버그|리팩터|리팩토링|문서|스타일|테스트|성능|빌드|CI|배포|출시|잡일|머지)(\([^)]+\))?!?: .+'
 
           if printf '%s' "$title" | grep -E -q "$regex_cc"; then
             echo "OK (conventional commits)"
