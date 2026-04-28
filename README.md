@@ -125,6 +125,13 @@ swift run SaunaServer
 `CLAUDE.md` 의 "브랜치 / 머지 워크플로우" 섹션 참고.
 요약: `main` ← `dev` ← `1.0.0` ← `feature/*` (worktree). worktree 머지는 항상 regular merge (no squash).
 
+## 환경 / 시크릿
+
+이 레포는 시크릿 값을 절대 커밋하지 않음. 실제 값은 별도 private repo:
+
+- **https://github.com/thingineeer/thingineeer-env** (sauna 폴더)
+- 인벤토리: `docs/env-secrets.md`
+
 ## 라이선스
 
 Private / 개인 프로젝트

@@ -50,14 +50,20 @@ fastlane/test_output
 *.swp
 *.swo
 
-# Secrets
+# Secrets — 모든 .env 파일은 ignore. 단, 템플릿(*.example) 은 커밋 OK.
 *.p12
 *.mobileprovision
 *.cer
 *.p8
 GoogleService-Info.plist
 .env
-.env.local
+.env.*
+!.env.*.example
+!.env.example
+.fastlane.env
+**/secrets/
+SentryDSN.txt
+AppStoreConnect_AuthKey_*.p8
 
 # Logs
 *.log
