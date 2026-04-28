@@ -1,0 +1,186 @@
+name: iOS CI
+
+on:
+  pull_request:
+    branches: [1.0.0, dev, main, release]
+    paths-ignore:
+      - "docs/**"
+      - "design-handoff/**"
+      - "README.md"
+      - "**/*.md"
+  push:
+    branches: [1.0.0, dev, main, release]
+    paths-ignore:
+      - "docs/**"
+      - "design-handoff/**"
+      - "README.md"
+      - "**/*.md"
+    # v* 태그 push 시에는 TestFlight 업로드 잡까지 간다.
+    tags:
+      - "v*"
+  # Manual trigger — billing-paused 환경에서 paid macOS 잡 수동 실행용.
+  workflow_dispatch:
+
+# Cancel in-flight runs on the same ref (PR or branch) when a new commit lands.
+concurrency:
+  group: ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PACKAGE_PATH: ios/SaunaPackage
+  # Pin to Xcode 16 (latest stable on macos-14 runners as of 2026-04).
+  # Bump explicitly here when GitHub-hosted images expose a newer stable.
+  XCODE_VERSION: "16.2"
+
+jobs:
+  build-test:
+    name: Build & Test (SPM)
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+
+      - name: Print toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Cache SPM build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PACKAGE_PATH }}/.build
+            ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-xcode${{ env.XCODE_VERSION }}-spm-${{ hashFiles(format('{0}/Package.resolved', env.PACKAGE_PATH), format('{0}/Package.swift', env.PACKAGE_PATH)) }}
+          restore-keys: |
+            ${{ runner.os }}-xcode${{ env.XCODE_VERSION }}-spm-
+
+      - name: Resolve dependencies
+        run: swift package --package-path "$PACKAGE_PATH" resolve
+
+      - name: Build
+        run: swift build --package-path "$PACKAGE_PATH"
+
+      - name: Test (with code coverage)
+        run: swift test --package-path "$PACKAGE_PATH" --enable-code-coverage
+
+      - name: Locate coverage data
+        id: coverage
+        run: |
+          # SPM places the .profdata under .build/<triple>/debug/codecov/
+          PROFDATA=$(find "$PACKAGE_PATH/.build" -name "default.profdata" -type f | head -n 1)
+          XCTEST_BIN=$(find "$PACKAGE_PATH/.build" -path "*/debug/*PackageTests.xctest/Contents/MacOS/*PackageTests" -type f | head -n 1)
+          if [ -z "$PROFDATA" ]; then
+            echo "::warning::no profdata produced — skipping coverage export"
+            echo "have_coverage=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "have_coverage=true" >> "$GITHUB_OUTPUT"
+          echo "profdata=$PROFDATA" >> "$GITHUB_OUTPUT"
+          echo "xctest_bin=$XCTEST_BIN" >> "$GITHUB_OUTPUT"
+
+      - name: Export coverage report (lcov)
+        if: steps.coverage.outputs.have_coverage == 'true'
+        run: |
+          mkdir -p coverage-report
+          xcrun llvm-cov export \
+            -format=lcov \
+            -instr-profile="${{ steps.coverage.outputs.profdata }}" \
+            "${{ steps.coverage.outputs.xctest_bin }}" \
+            > coverage-report/coverage.lcov || true
+          xcrun llvm-cov report \
+            -instr-profile="${{ steps.coverage.outputs.profdata }}" \
+            "${{ steps.coverage.outputs.xctest_bin }}" \
+            > coverage-report/coverage-summary.txt || true
+
+      - name: Upload coverage artifact
+        if: steps.coverage.outputs.have_coverage == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-coverage-${{ github.run_id }}
+          path: coverage-report/
+          if-no-files-found: warn
+          retention-days: 14
+
+  lint:
+    # SwiftLint은 Linux 컨테이너에서 돈다. macos 분 (10x cost) 절약 + 결정론.
+    name: SwiftLint (strict)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    container:
+      image: ghcr.io/realm/swiftlint:0.57.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run SwiftLint (warnings as errors)
+        run: swiftlint lint --strict --config .swiftlint.yml ios/SaunaPackage/Sources server/Sources
+
+  # ────────────────────────────────────────────────────────────────────────
+  # TestFlight upload — only on `v*` tag push, after build-test + lint green.
+  # ────────────────────────────────────────────────────────────────────────
+  testflight:
+    name: TestFlight (Fastlane)
+    needs: [build-test, lint]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-14
+    timeout-minutes: 60
+    env:
+      FASTLANE_TEAM_ID: ${{ secrets.FASTLANE_TEAM_ID }}
+      FASTLANE_ITC_TEAM_ID: ${{ secrets.FASTLANE_ITC_TEAM_ID }}
+      APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+      APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      FASTLANE_CHANGELOG: ${{ github.event.head_commit.message }}
+      # Sauna runtime config — Release.xcconfig 가 $(SAUNA_*) 로 읽음.
+      SAUNA_HTTP_BASE_URL: ${{ vars.SAUNA_HTTP_BASE_URL || 'https://api.sauna.app' }}
+      SAUNA_WS_BASE_URL:   ${{ vars.SAUNA_WS_BASE_URL   || 'wss://api.sauna.app' }}
+      SAUNA_SENTRY_DSN:    ${{ secrets.SAUNA_SENTRY_DSN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: sudo xcode-select -s "/Applications/Xcode_${XCODE_VERSION}.app"
+
+      - name: Set up Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Sauna.xcodeproj
+        working-directory: ios
+        run: xcodegen generate --spec project.yml
+
+      - name: Resolve SPM packages for app target
+        working-directory: ios
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project Sauna.xcodeproj \
+            -scheme Sauna
+
+      - name: Fastlane beta
+        working-directory: ios
+        run: bundle exec fastlane beta
+
+      - name: Upload .ipa artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauna-ipa-${{ github.run_id }}
+          path: ios/build/*.ipa
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,83 @@
+# Sauna · Fastlane
+#
+# 흐름:
+#   make xcode          → xcodegen 으로 ios/Sauna.xcodeproj 생성
+#   bundle exec fastlane beta
+#       → build_app (Release)
+#       → upload_to_testflight
+#
+# 필요한 ENV:
+#   FASTLANE_TEAM_ID
+#   FASTLANE_ITC_TEAM_ID
+#   APP_STORE_CONNECT_API_KEY_KEY_ID
+#   APP_STORE_CONNECT_API_KEY_ISSUER_ID
+#   APP_STORE_CONNECT_API_KEY_KEY  (PEM, base64, or path to .p8)
+
+default_platform(:ios)
+
+platform :ios do
+
+  before_all do
+    # Fastlane 이 xcodeproj 를 못 찾으면 즉시 명확한 에러로 실패시킴.
+    unless File.exist?("../Sauna.xcodeproj")
+      UI.user_error!("ios/Sauna.xcodeproj 가 없습니다. 'make xcode' 부터 실행하세요.")
+    end
+  end
+
+  desc "테스트 + 빌드 (TestFlight 업로드 안 함)"
+  lane :build_only do
+    run_tests(
+      project: "Sauna.xcodeproj",
+      scheme: "Sauna",
+      devices: ["iPhone 16"]
+    )
+    build_app(
+      project: "Sauna.xcodeproj",
+      scheme: "Sauna",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build",
+      clean: true
+    )
+  end
+
+  desc "TestFlight 베타 업로드"
+  lane :beta do
+    setup_ci if is_ci
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_API_KEY_KEY"],
+      is_key_content_base64: true,
+      duration: 1200,
+      in_house: false
+    )
+
+    # 빌드 번호를 자동으로 한 칸 올림. 같은 marketing version 안에서만 누적.
+    increment_build_number(
+      build_number: latest_testflight_build_number(api_key: api_key) + 1,
+      xcodeproj: "Sauna.xcodeproj"
+    )
+
+    build_app(
+      project: "Sauna.xcodeproj",
+      scheme: "Sauna",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build",
+      clean: true
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true,
+      changelog: ENV["FASTLANE_CHANGELOG"] || "내부 베타 빌드 — 황토방 진입 테스트"
+    )
+  end
+
+  desc "App Store 정식 배포 (수동 확인)"
+  lane :release do
+    UI.user_error!("v1 단계에서는 App Store 배포 lane 미사용. TestFlight 만 운영.")
+  end
+end

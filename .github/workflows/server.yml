@@ -1,0 +1,178 @@
+name: Server CI
+
+on:
+  pull_request:
+    branches: [1.0.0, dev, main, release]
+    paths:
+      - "server/**"
+      - ".github/workflows/server.yml"
+  push:
+    branches: [1.0.0, dev, main, release]
+    paths:
+      - "server/**"
+      - ".github/workflows/server.yml"
+
+concurrency:
+  group: server-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build & Test (Vapor)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+
+    # Server Package.swift requires swift-tools-version: 6.0 + strict concurrency.
+    # 6.0-jammy 또는 6.1-jammy 모두 OK; 안정화된 6.0 으로 핀.
+    container:
+      image: swift:6.0-jammy
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: dev
+          POSTGRES_DB: sauna_test
+          POSTGRES_USER: sauna
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sauna -d sauna_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      # Service hostnames in `services:` are resolvable by name from a job
+      # container. See https://docs.github.com/actions/using-containerized-services
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgres://sauna:dev@postgres/sauna_test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Print toolchain
+        run: swift --version
+
+      - name: Wait for redis
+        run: |
+          apt-get update && apt-get install -y --no-install-recommends redis-tools postgresql-client
+          for i in $(seq 1 30); do
+            if redis-cli -h redis -p 6379 ping | grep -q PONG; then
+              echo "redis ready"; break
+            fi
+            echo "waiting for redis ($i)…"; sleep 2
+          done
+
+      - name: Wait for postgres
+        run: |
+          for i in $(seq 1 30); do
+            if pg_isready -h postgres -U sauna -d sauna_test; then
+              echo "postgres ready"; break
+            fi
+            echo "waiting for postgres ($i)…"; sleep 2
+          done
+
+      - name: Cache SPM build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            server/.build
+          key: ${{ runner.os }}-swift5.10-server-${{ hashFiles('server/Package.resolved', 'server/Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift5.10-server-
+
+      - name: Resolve dependencies
+        working-directory: server
+        run: swift package resolve
+
+      - name: Build
+        working-directory: server
+        run: swift build
+
+      - name: Test (with code coverage)
+        working-directory: server
+        run: swift test --enable-code-coverage
+
+      - name: Locate coverage data
+        id: coverage
+        working-directory: server
+        run: |
+          PROFDATA=$(find .build -name "default.profdata" -type f | head -n 1)
+          if [ -z "$PROFDATA" ]; then
+            echo "::warning::no profdata produced — skipping coverage export"
+            echo "have_coverage=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "have_coverage=true" >> "$GITHUB_OUTPUT"
+          echo "profdata=server/$PROFDATA" >> "$GITHUB_OUTPUT"
+
+      - name: Upload coverage artifact
+        if: steps.coverage.outputs.have_coverage == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-coverage-${{ github.run_id }}
+          path: ${{ steps.coverage.outputs.profdata }}
+          if-no-files-found: warn
+          retention-days: 14
+
+  docker:
+    name: Docker build (verify)
+    # Only verify image build on push to integration / release branches.
+    # We do NOT push yet — AWS creds aren't wired up.
+    if: github.event_name == 'push' && contains(fromJSON('["1.0.0","dev","release"]'), github.ref_name)
+    needs: build-test
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Buildx layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-server-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-server-
+
+      - name: Build server image
+        uses: docker/build-push-action@v6
+        with:
+          context: server
+          file: server/Dockerfile
+          push: false
+          load: true
+          tags: sauna-server:${{ github.sha }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      # Avoid unbounded cache growth (https://github.com/docker/build-push-action/issues/252)
+      - name: Rotate buildx cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache || true
+
+      # TODO: push to ECR
+      # Steps to add once AWS creds are provisioned:
+      #   1. configure-aws-credentials@v4 with role-to-assume (OIDC, no static keys)
+      #   2. amazon-ecr-login@v2
+      #   3. docker/build-push-action with push: true and tags: <ecr-uri>:${{ github.sha }}
+      #   4. trigger ECS service update (rolling) — separate deploy.yml workflow

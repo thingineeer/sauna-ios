@@ -1,0 +1,69 @@
+name: PR Hygiene
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: lint-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  title:
+    name: PR title check
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    env:
+      PR_TITLE: ${{ github.event.pull_request.title }}
+    steps:
+      - name: Block [WIP] titles
+        run: |
+          title="$PR_TITLE"
+          echo "PR title: $title"
+          # Reject [WIP], (WIP), or leading "WIP:" / "WIP " markers (case-insensitive).
+          if printf '%s' "$title" | grep -E -i -q '(\[wip\]|\(wip\)|^wip[: ])'; then
+            echo "::error title=WIP block::PR title contains a WIP marker — finish the work or remove the WIP tag before requesting review."
+            exit 1
+          fi
+
+      - name: Conventional Commits / Korean header
+        run: |
+          title="$PR_TITLE"
+          # Accept either:
+          #   1) conventional commits: type(scope)?!?: subject
+          #      type ∈ feat | fix | chore | refactor | docs | style | test | ci | build | perf | revert
+          #   2) Korean prefix: e.g. "기능: …", "수정: …", "리팩터: …", "문서: …", "스타일: …", "테스트: …", "CI: …"
+          regex_cc='^(feat|fix|chore|refactor|docs|style|test|ci|build|perf|revert|release|merge|harness)(\([a-z0-9._/-]+\))?!?: .+'
+          regex_ko='^(기능|수정|버그|리팩터|리팩토링|문서|스타일|테스트|성능|빌드|CI|배포|출시|잡일|머지)(\([^)]+\))?!?: .+'
+
+          if printf '%s' "$title" | grep -E -q "$regex_cc"; then
+            echo "OK (conventional commits)"
+            exit 0
+          fi
+          if printf '%s' "$title" | grep -E -q "$regex_ko"; then
+            echo "OK (Korean header)"
+            exit 0
+          fi
+
+          cat <<'EOF'
+          ::error title=PR title format::PR title must follow Conventional Commits or the Korean equivalent.
+
+          Examples (English):
+            feat(server): WebSocket presence heartbeat
+            fix(ios/room): keyboard avoidance jitter on iOS 17.4
+            chore: bump SwiftLint to 0.55
+            ci: cache SPM build artifacts
+
+          Examples (Korean):
+            기능(server): WebSocket presence 하트비트
+            수정(ios/room): iOS 17.4 키보드 회피 떨림
+            잡일: SwiftLint 0.55 로 업데이트
+
+          Allowed types: feat, fix, chore, refactor, docs, style, test, ci, build, perf, revert
+          Allowed Korean prefixes: 기능, 수정, 버그, 리팩터, 리팩토링, 문서, 스타일, 테스트, 성능, 빌드, CI, 배포, 잡일
+          EOF
+          exit 1

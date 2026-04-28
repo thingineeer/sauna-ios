@@ -50,14 +50,20 @@ fastlane/test_output
 *.swp
 *.swo
 
-# Secrets
+# Secrets — 모든 .env 파일은 ignore. 단, 템플릿(*.example) 은 커밋 OK.
 *.p12
 *.mobileprovision
 *.cer
 *.p8
 GoogleService-Info.plist
 .env
-.env.local
+.env.*
+!.env.*.example
+!.env.example
+.fastlane.env
+**/secrets/
+SentryDSN.txt
+AppStoreConnect_AuthKey_*.p8
 
 # Logs
 *.log
@@ -65,3 +71,18 @@ GoogleService-Info.plist
 # Node (design handoff에 섞일 수 있어서)
 node_modules/
 npm-debug.log*
+
+# Firebase Functions build artifacts
+functions/lib/
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+
+# Claude Code subagent worktrees (절대 트래킹 X — 별도 브랜치)
+.claude/worktrees/
+
+# Terraform local state
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/.terraform.lock.hcl

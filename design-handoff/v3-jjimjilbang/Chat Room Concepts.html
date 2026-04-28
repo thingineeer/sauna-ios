@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sauna — Chat Room Concepts</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; overflow: hidden; height: 100%; }
+  body { font-family: 'Space Grotesk', 'Noto Sans KR', -apple-system, system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="lib/tokens.jsx"></script>
+<script type="text/babel" src="lib/sauna-ds.jsx"></script>
+<script type="text/babel" src="lib/design-canvas.jsx"></script>
+<script type="text/babel" src="lib/sauna-phone.jsx"></script>
+<script type="text/babel" src="lib/chat-room-variants.jsx"></script>
+<script type="text/babel" src="lib/sauna-mascot.jsx"></script>
+<script type="text/babel" src="lib/pixel-mascot.jsx"></script>
+<script type="text/babel" src="lib/more-rooms.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+const { SaunaPhone } = window;
+const { ChatRoomCedarGrove, ChatRoomModernStone, ChatRoomBathHall,
+  ChatRoomCedarGroveWithTable, ChatRoomModernStoneWithTable, ChatRoomBathHallWithTable } = window;
+const { CharacterShowcase, MoongMoong,
+  ChatRoomCedarGroveWithMascot, ChatRoomModernStoneWithMascot,
+  ChatRoomBathHallWithMascot } = window;
+const { PixelMascot, PixelMascotShowcase,
+  ChatRoomJjimjilbang, ChatRoomSaltRoom, ChatRoomIceRoom, ChatRoomCypressRoom } = window;
+
+const W = 393, H = 852;
+const PHONE_W = 413, PHONE_H = 874;
+
+function Phone({ children }) {
+  return <SaunaPhone>{children}</SaunaPhone>;
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="intro" title="채팅방 시안 — 사우나 컨셉 · 휘발 RISE"
+        subtitle="공통: 사우나 메타포, 메시지는 위로 떠올라 흩어짐(rise). 차이: 배경/라이팅/팔레트 — 같은 UX 위에 3가지 ambient 무드.">
+        <div style={{
+          width: 880, padding: '20px 24px', borderRadius: 12,
+          background: 'rgba(201,100,66,0.08)', border: '1px solid rgba(201,100,66,0.2)',
+          color: 'rgba(40,30,20,0.85)', fontSize: 13, lineHeight: 1.65,
+        }}>
+          <div style={{fontWeight: 700, marginBottom: 10, fontSize: 15, color: '#c96442'}}>
+            3개 시안 비교
+          </div>
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap: 18}}>
+            <div>
+              <div style={{fontWeight:700, fontSize:12, marginBottom:4}}>A · Cedar Grove</div>
+              <div style={{fontSize:11.5, color:'rgba(40,30,20,0.65)'}}>
+                러스틱 호박 원목, 가로결 plank, 천장 heat lamp, 작은 thermometer.
+                레퍼 ①에서 영감. 전통 사우나의 농밀한 따뜻함.
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight:700, fontSize:12, marginBottom:4}}>B · Modern Stone</div>
+              <div style={{fontSize:11.5, color:'rgba(40,30,20,0.65)'}}>
+                옅은 자작 세로결, 천장 grid + LED cove strip, heater rocks.
+                레퍼 ②. 모던 미니멀 — 차분하고 절제된 공간감.
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight:700, fontSize:12, marginBottom:4}}>C · Bath Hall</div>
+              <div style={{fontSize:11.5, color:'rgba(40,30,20,0.65)'}}>
+                대리석 + 타일 wainscot + 광천수 풀 + 아치 등.
+                레퍼 ③. 목욕탕의 클래식 고급감 — 사우나 메타포를 욕장 톤으로.
+              </div>
+            </div>
+          </div>
+        </div>
+      </DCSection>
+
+      <DCSection id="rooms" title="채팅방 시안 3종"
+        subtitle="모두 동일한 채팅 UX · 휘발 방식 = rise. 같은 닉네임 풀, 같은 인원수(12명).">
+        <DCArtboard id="cedar" label="A · Cedar Grove — 호박 원목" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomCedarGrove width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="modern" label="B · Modern Stone — 미니멀 LED" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomModernStone width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="hall" label="C · Bath Hall — 대리석 + 광천수" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomBathHall width={W} height={H}/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="rooms-table" title="채팅방 시안 + 사우나 사이드 테이블"
+        subtitle="기존 시안에 식혜(살얼음 + 잣) + 맥반석 계란(2개)을 올린 작은 사이드 테이블 추가.">
+        <DCArtboard id="cedar-t" label="A+ · Cedar Grove + 식혜·맥반석" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomCedarGroveWithTable width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="modern-t" label="B+ · Modern Stone + 식혜·맥반석" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomModernStoneWithTable width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="hall-t" label="C+ · Bath Hall + 식혜·맥반석" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomBathHallWithTable width={W} height={H}/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="mascot" title="몽몽 — 사우나 힐링 메이트"
+        subtitle="머리에 수건 두른 동글동글 캐릭터. 5가지 포즈로 방 분위기에 반응. Sauna는 따뜻한 톤, Bath Hall은 시원한 톤.">
+        <DCArtboard id="mascot-spec" label="캐릭터 명세 · 5 포즈 + 톤 변형" width={920} height={520}>
+          <CharacterShowcase/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="pixel-mascot" title="콩이 — 16-bit 픽셀 사우나 메이트"
+        subtitle="SNES 풍부한 컬러. 16x16 / 32x32 두 사이즈. 7가지 액션 (졸기/식혜/계란/땀/잠김/빠끔/기본).">
+        <DCArtboard id="pixel-spec" label="픽셀 캐릭터 명세 + 팔레트" width={960} height={680}>
+          <PixelMascotShowcase/>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="more-rooms" title="추가 사우나 컨셉 — 한국 찜질방 데이터 기반"
+        subtitle="D 황토방 / E 핑크 솔트 / F 얼음방 / G 편백나무. 각 방에 콩이 픽셀 캐릭터 배치.">
+        <DCArtboard id="d-jjimjil" label="D · 한국 찜질방 (황토방 + 마룻바닥)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomJjimjilbang width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="e-salt" label="E · 핑크 솔트 (히말라야)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomSaltRoom width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="f-ice" label="F · 얼음방 (냉탕)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomIceRoom width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="g-cypress" label="G · 편백나무방" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomCypressRoom width={W} height={H}/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="rooms-mascot" title="채팅방 + 몽몽"
+        subtitle="각 방에 캐릭터 배치. A는 나른함(bliss), B는 기본(idle), C는 풀에 잠김(soak).">
+        <DCArtboard id="cedar-m" label="A · Cedar + 몽몽 (bliss)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomCedarGroveWithMascot width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="modern-m" label="B · Modern + 몽몽 (idle)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomModernStoneWithMascot width={W} height={H}/></Phone>
+        </DCArtboard>
+        <DCArtboard id="hall-m" label="C · Bath Hall + 몽몽 (soak)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ChatRoomBathHallWithMascot width={W} height={H}/></Phone>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

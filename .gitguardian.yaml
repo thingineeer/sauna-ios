@@ -1,0 +1,17 @@
+version: 2
+
+# GitGuardian 의 false positive 들. 모두 ephemeral / placeholder 값이라
+# repo 가 public 이 되어도 위험 0.
+
+secret:
+  ignored-paths:
+    # CI 테스트 postgres 컨테이너의 단발성 비밀번호 (`dev`).
+    - .github/workflows/server.yml
+    # 로컬 개발용 docker-compose 의 fallback 값 (`${POSTGRES_PASSWORD:-dev}`).
+    - infra/docker-compose.yml
+    # 템플릿 — 실제 값은 .gitignored .env 에 들어감.
+    - infra/.env.example
+    - ios/fastlane/.env.fastlane.example
+    # 시크릿 인벤토리 문서 — env var 이름만 적혀있음.
+    - docs/env-secrets.md
+    - CLAUDE.md

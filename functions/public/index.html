@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Sauna API</title>
+<style>body{font-family:-apple-system,sans-serif;background:#0a0604;color:#FFE8C8;padding:40px;line-height:1.6}code{background:rgba(255,200,140,.1);padding:2px 6px;border-radius:4px}</style>
+</head><body>
+<h1>Sauna · 임시 API</h1>
+<p>Firebase Cloud Functions on i-lunch-app project. 운영 시 AWS Vapor 로 마이그레이션.</p>
+<h2>엔드포인트</h2>
+<ul>
+  <li><code>GET /health</code> — 헬스체크</li>
+  <li><code>GET /rooms</code> — 3개 방 + 인원수</li>
+  <li><code>GET /rooms/:roomId/occupancy</code> — 단일 방 인원</li>
+  <li><code>POST /rooms/:roomId/send</code> (Bearer 토큰) — 메시지 publish</li>
+</ul>
+<p>메시지 영속 정책: 60초 후 Firestore TTL 자동 삭제. 로그에 텍스트 X.</p>
+</body></html>

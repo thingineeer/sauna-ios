@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sauna — Full Flow v2</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; overflow: hidden; height: 100%; }
+  body { font-family: 'Space Grotesk', 'Noto Sans KR', -apple-system, system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .kor  { font-family: 'Noto Sans KR', sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="lib/tokens.jsx"></script>
+<script type="text/babel" src="lib/sauna-ds.jsx"></script>
+<script type="text/babel" src="lib/design-canvas.jsx"></script>
+<script type="text/babel" src="lib/sauna-phone.jsx"></script>
+<script type="text/babel" src="lib/concept-sauna-deep.jsx"></script>
+<script type="text/babel" src="lib/sauna-screens.jsx"></script>
+<script type="text/babel" src="lib/sauna-variants.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+const { SaunaPhone, SAUNA } = window;
+const {
+  ScreenSplash, ScreenOnboard1, ScreenOnboard2, ScreenOnboard3,
+  ScreenHome, ScreenEnter, ScreenRoom, ScreenRoomKeyboard,
+  ScreenProfile, ScreenSettings, ScreenNotifPrefs,
+  RoomVariant, ConceptBathHouse,
+} = window;
+
+// 폰 프레임으로 한 번에 감싸기
+function Phone({ children, kb }) {
+  return <SaunaPhone keyboardUp={kb}>{children}</SaunaPhone>;
+}
+const PHONE_W = 413;
+const PHONE_H = 874;
+
+function App() {
+  return (
+    <DesignCanvas>
+      {/* ─── Intro ─────────────────── */}
+      <DCSection id="intro" title="Sauna — Full Flow v2"
+        subtitle="원목 사우나 톤의 익명 휘발성 채팅 앱. 11개 핵심 화면 + 휘발 방식 / 인원 밀도 / 시간대 변형 + 대안 컨셉 비교 (BathHouse). 디자인 시스템 + 톤은 sauna-app.html 정본 그대로 유지.">
+        <div style={{
+          width: 820, padding: '22px 26px', borderRadius: 12,
+          background: 'rgba(201,100,66,0.08)', border: '1px solid rgba(201,100,66,0.2)',
+          color: 'rgba(40,30,20,0.85)', fontSize: 13, lineHeight: 1.65,
+        }}>
+          <div style={{fontWeight: 700, marginBottom: 10, fontSize: 15, color: '#c96442'}}>이번 라운드에서 정리한 것</div>
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap: 16}}>
+            <div>
+              <div style={{fontWeight:700, fontSize:12, marginBottom:4}}>① 11개 화면 재정비</div>
+              <div style={{fontSize:11.5, color:'rgba(40,30,20,0.65)'}}>
+                Splash · Onboard 1/2/3 · Home(아침/저녁/밤) · Enter · Room · RoomKB · Profile · Settings · Notif
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight:700, fontSize:12, marginBottom:4}}>② 변형 매트릭스</div>
+              <div style={{fontSize:11.5, color:'rgba(40,30,20,0.65)'}}>
+                휘발 방식 (rise / fade / scatter) × 인원 밀도 (lonely / medium / packed) × 시간대 (morning / evening / night)
+              </div>
+            </div>
+            <div>
+              <div style={{fontWeight:700, fontSize:12, marginBottom:4}}>③ 대안 컨셉</div>
+              <div style={{fontSize:11.5, color:'rgba(40,30,20,0.65)'}}>
+                BathHouse(목욕탕 / 물결): 사우나가 너무 좁다고 느껴질 때 비교용. 메타포 = 잠긴다 · 풀린다.
+              </div>
+            </div>
+          </div>
+          <div style={{marginTop:14, padding:'10px 12px', borderRadius:8,
+            background:'rgba(255,255,255,0.5)', fontSize:11.5,
+            color:'rgba(40,30,20,0.75)', lineHeight:1.55}}>
+            <b style={{color:'#c96442'}}>담타 벤치마킹 메모:</b> 익명+휘발은 같지만 메타포는 우리만의 것. 사우나(원목/땀/증기) vs 목욕탕(물/잠김/물결). 둘 다 "한 공간에 같이 앉아있다"가 핵심 — 1:1 DM이 없는 이유. 결정 안 났다고 해서 디자인은 둘 다 끝까지 밀어봄.
+          </div>
+        </div>
+      </DCSection>
+
+      {/* ─── 1. Entry Flow ────────── */}
+      <DCSection id="entry" title="1 · Entry Flow"
+        subtitle="Splash → Onboard 1/3 → 2/3 → 3/3 → Home. 닉네임은 자정마다 새로 발급.">
+        <DCArtboard id="splash" label="S0 · Splash" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenSplash/></Phone>
+        </DCArtboard>
+        <DCArtboard id="ob1" label="S1 · Onboard 1/3 — 사우나란?" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenOnboard1/></Phone>
+        </DCArtboard>
+        <DCArtboard id="ob2" label="S2 · Onboard 2/3 — 규칙" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenOnboard2/></Phone>
+        </DCArtboard>
+        <DCArtboard id="ob3" label="S3 · Onboard 3/3 — 오늘의 닉네임" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenOnboard3/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 2. Home — 시간대 변형 ── */}
+      <DCSection id="home" title="2 · Home — 시간대 변형"
+        subtitle="똑같은 3개 방 + 인원수만 변함. 시간이 분위기를 결정함. 카드 액센트는 동일, 방 인원이 카피와 trend를 바꿈.">
+        <DCArtboard id="home-morning" label="H1 · Home (morning · 09:41)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenHome timeOfDay="morning"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="home-evening" label="H2 · Home (evening · 18:47) — 퇴근 피크" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenHome timeOfDay="evening"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="home-night" label="H3 · Home (night · 03:28) — 새벽 적막" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenHome timeOfDay="night"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="home-enter" label="H4 · Enter — 문 열림" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenEnter/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 3. Room — 인원 밀도 ── */}
+      <DCSection id="room-density" title="3 · Room — 인원 밀도 시나리오"
+        subtitle="같은 방, 다른 사람 수. 메시지 빈도 / lifeMs / 동시 표시 개수가 달라짐. 휘발 방식은 기본 'rise'.">
+        <DCArtboard id="room-lonely" label="R1 · 일상 (lonely · 2명)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenRoom roomId="daily" crowd="lonely"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="room-medium" label="R2 · 일상 (medium · 12명)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenRoom roomId="daily" crowd="medium"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="room-stock-packed" label="R3 · 주식 (packed · 312명) — VI 피크" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenRoom roomId="stock" crowd="packed"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="room-job-lonely" label="R4 · 취준 (lonely · 3명) — 새벽조" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenRoom roomId="job" crowd="lonely"/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 4. Vanish style 비교 ── */}
+      <DCSection id="vanish" title="4 · 메시지 휘발 방식 비교"
+        subtitle="똑같은 방(일상 medium)에서 메시지가 어떻게 사라지는지 3가지 비교. 같이 보고 정해주세요.">
+        <DCArtboard id="vanish-rise" label="A · Rise — 위로 올라가며 흩어짐 (현재 정본)" width={PHONE_W} height={PHONE_H}>
+          <Phone><RoomVariant roomId="daily" crowd="medium" vanishStyle="rise"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="vanish-fade" label="B · Fade — 제자리에서 페이드" width={PHONE_W} height={PHONE_H}>
+          <Phone><RoomVariant roomId="daily" crowd="medium" vanishStyle="fade"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="vanish-scatter" label="C · Scatter — 옆으로 흩날림" width={PHONE_W} height={PHONE_H}>
+          <Phone><RoomVariant roomId="daily" crowd="medium" vanishStyle="scatter"/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 5. Keyboard ON ──────── */}
+      <DCSection id="keyboard" title="5 · 키보드 ON 상태"
+        subtitle="iOS 한글 키보드(291px) 올라온 상태. 입력바가 위로 푸시되고 메시지 영역이 압축됨.">
+        <DCArtboard id="kb-daily" label="R-KB · 일상 방 (입력 중)" width={PHONE_W} height={PHONE_H}>
+          <Phone kb={true}><ScreenRoomKeyboard roomId="daily"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="kb-stock" label="R-KB · 주식 방 (피크 중 입력)" width={PHONE_W} height={PHONE_H}>
+          <Phone kb={true}><ScreenRoomKeyboard roomId="stock"/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 6. Me / Settings ──── */}
+      <DCSection id="me" title="6 · Me · Settings · Notif"
+        subtitle="세션 기록 없음 · 최소 리스트. 메시지 영속 X가 제품 본질임을 사용자에게 명시.">
+        <DCArtboard id="profile" label="M1 · Profile" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenProfile/></Phone>
+        </DCArtboard>
+        <DCArtboard id="settings" label="M2 · Settings" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenSettings/></Phone>
+        </DCArtboard>
+        <DCArtboard id="notif" label="M3 · Notif Prefs (Preview 포함)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenNotifPrefs/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── 7. 대안 컨셉 비교 ──── */}
+      <DCSection id="alt" title="7 · 대안 컨셉 — BathHouse (목욕탕 / 물결)"
+        subtitle="사우나만큼 익명·휘발에 어울리는 다른 메타포. 톤(원목→타일+물), 액션(땀→잠김), 휘발(증기→물결). 결정 시 비교 포인트 제공용. 같은 컨셉(익명·휴식·공간 분리)이지만 시각언어가 정 반대 — 차가운 청록 vs 뜨거운 호박색.">
+        <DCArtboard id="alt-bathhouse" label="대안 · BathHouse (Daily)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ConceptBathHouse roomId="daily"/></Phone>
+        </DCArtboard>
+        <DCArtboard id="alt-vs-sauna" label="비교 · Sauna (Daily)" width={PHONE_W} height={PHONE_H}>
+          <Phone><ScreenRoom roomId="daily" crowd="medium"/></Phone>
+        </DCArtboard>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

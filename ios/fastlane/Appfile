@@ -1,0 +1,8 @@
+# App Store Connect 연결.
+#
+# 이 값들은 lane 안에서 자동 사용됨. 실제 값은 ENV 또는 keychain 에서 읽음.
+
+app_identifier("th1ngjin.Sauna")
+team_id(ENV["FASTLANE_TEAM_ID"])           # Apple Developer team id
+itc_team_id(ENV["FASTLANE_ITC_TEAM_ID"])   # App Store Connect team id (다른 팀일 수 있음)
+apple_id(ENV["FASTLANE_USER"])             # 옵셔널 — App Store Connect API key 가 있으면 무시됨
